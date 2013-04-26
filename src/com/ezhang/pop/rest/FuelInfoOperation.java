@@ -1,19 +1,12 @@
 package com.ezhang.pop.rest;
 
 import java.io.ByteArrayInputStream;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Xml;
 
 import com.ezhang.pop.model.FuelInfoXmlHandler;
 import com.foxykeep.datadroid.exception.ConnectionException;

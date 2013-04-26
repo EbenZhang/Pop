@@ -34,7 +34,7 @@ public final class PopService extends RequestService {
     // override the getMaximumNumberOfThreads() method
 	@Override
     protected int getMaximumNumberOfThreads() {
-        return 5;
+        return 2;
     }
 
     @Override

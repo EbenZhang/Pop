@@ -22,6 +22,8 @@ public class PopRequestFactory {
             "com.ezhang.pop.current.address";
 
 	public static final String BUNDLE_FUEL_DATA = "com.ezhang.pop.fuel.info";
+	
+	public static final String BUNDLE_LOCATION_DATA = "com.ezhang.pop.location.data";
     
     public static Request GetDistanceMatrixRequest(String src, DestinationList dstList) {
         Request request = new Request(REQ_TYPE_DISTANCE_MATRIX);

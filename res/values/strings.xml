@@ -3,6 +3,6 @@
     <string name="app_name">Pop</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="Refresh">Refresh</string>
+    <string name="share_with_friends">share with friends</string>
 
 </resources>

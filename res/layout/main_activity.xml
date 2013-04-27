@@ -13,30 +13,47 @@
         android:id="@+id/listView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@+id/statusBar"
-        >
+        android:layout_above="@+id/seperatorBar" >
     </ListView>
-    
+
+    <View
+        android:id="@+id/seperatorBar"
+        android:layout_width="fill_parent"
+        android:layout_height="2dp"
+        android:layout_above="@+id/consoleBar"
+        android:background="@android:color/darker_gray" />
+
     <LinearLayout
-        android:id="@+id/statusBar"
-        android:layout_width="wrap_content"
+        android:id="@+id/consoleBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-         >
+        android:layout_above="@+id/statusText"
+        android:layout_alignWithParentIfMissing="true" >
 
         <Button
             android:id="@+id/RefreshButtton"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:background="@drawable/refresh_animation" />
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="@drawable/refresh_animation"
+            android:onClick="Refresh" />
 
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:textIsSelectable="false" >
-        </TextView>
+        <ImageButton
+            android:id="@+id/ShareButton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="#00000000"
+            android:contentDescription="@string/share_with_friends"
+            android:onClick="ShareWithFriend"
+            android:scaleType="fitCenter"
+            android:src="@drawable/thumbsup" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:textIsSelectable="false" >
+    </TextView>
 
 </RelativeLayout>

@@ -1,16 +1,17 @@
-package com.ezhang.pop;
+package com.ezhang.pop.ui;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Observable;
 import java.util.Observer;
 
-import com.ezhang.pop.FuelStateMachine.EmEvent;
-import com.ezhang.pop.FuelStateMachine.EmState;
+import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.rest.PopRequestManager;
+import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
+import com.ezhang.pop.ui.FuelStateMachine.EmState;
 
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -40,7 +41,7 @@ public class MainActivity extends Activity implements Observer {
 	private ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
 	private ListView m_listView = null;
 	private static final String SAVED_DISTANCE_MATRIX_REQS = "com.ezhang.pop.saved.distance.matrix.reqs";
-	
+
 	Button m_refreshButton = null;
 	AnimationDrawable m_refreshButtonAnimation = null;
 	TextView m_statusText = null;
@@ -50,6 +51,7 @@ public class MainActivity extends Activity implements Observer {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
+
 		m_restReqManager = PopRequestManager.from(this);
 		m_refreshButton = (Button) findViewById(R.id.RefreshButtton);
 		m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
@@ -71,13 +73,14 @@ public class MainActivity extends Activity implements Observer {
 				FuelDistanceItem fullObject = (FuelDistanceItem) o;
 				if (m_fuelStateMachine != null
 						&& m_fuelStateMachine.m_location != null) {
-					
+
 					NavigationLaunch launch = new NavigationLaunch(
-							MainActivity.this,
-							String.valueOf(m_fuelStateMachine.m_location.getLatitude()),
-							String.valueOf(m_fuelStateMachine.m_location.getLongitude()),
-							fullObject.latitude, fullObject.longitude
-							);
+							MainActivity.this, String
+									.valueOf(m_fuelStateMachine.m_location
+											.getLatitude()), String
+									.valueOf(m_fuelStateMachine.m_location
+											.getLongitude()),
+							fullObject.latitude, fullObject.longitude);
 					launch.Launch();
 				}
 			}
@@ -88,7 +91,7 @@ public class MainActivity extends Activity implements Observer {
 	public void OnRefreshClicked(View v) {
 		this.m_fuelStateMachine.Refresh();
 	}
-	
+
 	public void OnSettingsClicked(View v) {
 		m_discountSettings.ShowSettingsDialog(new ICallable<Object, Object>() {
 			public Object Call(Object o) {
@@ -115,7 +118,7 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		
+
 		m_discountSettings.LoadSettings(new ICallable<Object, Object>() {
 			public Object Call(Object o) {
 				OnDiscountInfoLoaded();
@@ -141,7 +144,7 @@ public class MainActivity extends Activity implements Observer {
 
 			// Setting Dialog Title
 			alertDialog.setTitle("Network Access Required");
-			
+
 			alertDialog.setCancelable(false);
 
 			// Setting Dialog Message
@@ -237,11 +240,22 @@ public class MainActivity extends Activity implements Observer {
 			m_statusText.setText("Completed");
 			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
 			SwitchToStopWaiting();
-
 		}
 		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbRecieved) {
 			m_statusText.setText("Suburb Recieved: "
 					+ this.m_fuelStateMachine.m_suburb);
+			if (this.m_fuelStateMachine.m_suburb != null
+					&& this.m_fuelStateMachine.m_suburb != "") {
+				int indexOfSuburb = this.m_fuelStateMachine.m_address
+						.indexOf(this.m_fuelStateMachine.m_suburb);
+
+				String addrWithoutSuburb = this.m_fuelStateMachine.m_address
+						.substring(0, indexOfSuburb);
+				TextView v = ((TextView) this.findViewById(R.id.curAddressText));
+				v.setText("You're at:" + addrWithoutSuburb
+						+ this.m_fuelStateMachine.m_suburb);
+				v.setVisibility(View.VISIBLE);
+			}
 			SwitchToWaitingStatus();
 		}
 
@@ -252,11 +266,13 @@ public class MainActivity extends Activity implements Observer {
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
 			m_statusText.setText("Waiting For Location Information");
+			HideCurrentAddress();
 			SwitchToWaitingStatus();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationRecieved) {
 			m_statusText.setText("Location Information Recieved");
+			HideCurrentAddress();
 			SwitchToWaitingStatus();
 		}
 
@@ -264,9 +280,15 @@ public class MainActivity extends Activity implements Observer {
 			if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
 				m_statusText.setText("Unable To Get Location");
 			}
+			HideCurrentAddress();
 			this.SwitchToStopWaiting();
 			m_statusText.setVisibility(View.VISIBLE);
 		}
+	}
+
+	private void HideCurrentAddress() {
+		TextView v = ((TextView) this.findViewById(R.id.curAddressText));
+		v.setVisibility(View.GONE);
 	}
 
 	private void SwitchToStopWaiting() {

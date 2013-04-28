@@ -19,6 +19,9 @@ public class PopRequestFactory {
             "com.ezhang.pop.distanceMatrix";
     
     public static final String BUNDLE_CUR_SUBURB_DATA =
+            "com.ezhang.pop.current.suburb";
+    
+    public static final String BUNDLE_CUR_ADDRESS_DATA =
             "com.ezhang.pop.current.address";
 
 	public static final String BUNDLE_FUEL_DATA = "com.ezhang.pop.fuel.info";
@@ -36,7 +39,7 @@ public class PopRequestFactory {
     public static Request GetCurrentSuburbRequest(Location location) {
         Request request = new Request(REQ_TYPE_GET_CUR_SUBURB);
         request.setMemoryCacheEnabled(true);
-        request.put(CurrentSuburbQueryOpertion.CUR_GEO_LOCATION, LocationFormatter.GoogleQueryFormat(location));
+        request.put(CurrentAddressQueryOpertion.CUR_GEO_LOCATION, LocationFormatter.GoogleQueryFormat(location));
         return request;
     }
 

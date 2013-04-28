@@ -17,7 +17,7 @@
 
         <EditText
             android:id="@+id/wws_voucher"
-            android:layout_width="42dp"
+            android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
             android:gravity="right"
@@ -45,7 +45,7 @@
 
         <EditText
             android:id="@+id/coles_voucher"
-            android:layout_width="42dp"
+            android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
             android:inputType="number" 

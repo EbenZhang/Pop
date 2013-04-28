@@ -1,4 +1,4 @@
-package com.ezhang.pop;
+package com.ezhang.pop.ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +59,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	private LocationManager m_locationManager;
 	public Location m_location = null;
 	public String m_suburb = null;
+	public String m_address = null;
 	private String m_provider = null;
 	public EmEvent m_timeoutEvent = EmEvent.Invalid;
 	Timer m_timer = null;
@@ -160,6 +161,14 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					public void PerformAction(Bundle param) {
 						m_suburb = param
 								.getString(PopRequestFactory.BUNDLE_CUR_SUBURB_DATA);
+						m_address = param
+								.getString(PopRequestFactory.BUNDLE_CUR_ADDRESS_DATA);
+						if(m_suburb == "")
+						{
+							m_stateMachine.SetState(EmState.GeoLocationRecieved);
+							RequestSuburb();
+							return;
+						}
 						RequestFuelInfo();
 						Notify();
 					}

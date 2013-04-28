@@ -1,8 +1,9 @@
-package com.ezhang.pop;
+package com.ezhang.pop.ui;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
+import com.ezhang.pop.R;
 import com.ezhang.pop.model.FuelDistanceItem;
 
 import android.content.Context;

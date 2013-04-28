@@ -14,7 +14,7 @@ import com.foxykeep.datadroid.network.NetworkConnection.Method;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.service.RequestService.Operation;
 
-public class CurrentSuburbQueryOpertion implements Operation {
+public class CurrentAddressQueryOpertion implements Operation {
 	
 	public static final String CUR_GEO_LOCATION = "com.ezhang.pop.current.location";
 
@@ -37,9 +37,14 @@ public class CurrentSuburbQueryOpertion implements Operation {
 
 	private Bundle parseResult(String response) {
 		String suburb = "";
-		try {
+		String address = "";
+		try { 
 			int beginOfFirstAddrComponent = response.indexOf("\"address_components\"");
-			int endOfFirstAddrComponent = response.indexOf("\"formatted_address\"");
+			String formattedAddressTag = "\"formatted_address\" : \"";
+			int endOfFirstAddrComponent = response.indexOf(formattedAddressTag);
+			address = response.substring(endOfFirstAddrComponent + formattedAddressTag.length());
+			int endOfAddress = address.indexOf("\"");
+			address = address.substring(0, endOfAddress);
 			response = "{" + response.substring(beginOfFirstAddrComponent, endOfFirstAddrComponent) + "\"dummy\":\"dummy\"}";
 			JSONObject obj = new JSONObject(response);
 			JSONArray addrComponents = obj.getJSONArray("address_components");
@@ -65,6 +70,7 @@ public class CurrentSuburbQueryOpertion implements Operation {
 		}
 		Bundle bundle = new Bundle();
 		bundle.putString(PopRequestFactory.BUNDLE_CUR_SUBURB_DATA, suburb);
+		bundle.putString(PopRequestFactory.BUNDLE_CUR_ADDRESS_DATA, address);
 		return bundle;
 	}
 }

@@ -46,7 +46,7 @@ public final class PopService extends RequestService {
 	        case PopRequestFactory.REQ_TYPE_DISTANCE_MATRIX:
 	            return new DistanceMatrixQueryOperation();
 	        case PopRequestFactory.REQ_TYPE_GET_CUR_SUBURB:
-	        	return new CurrentSuburbQueryOpertion();
+	        	return new CurrentAddressQueryOpertion();
 	        case PopRequestFactory.REQ_TYPE_FUEL:
 	        	return new FuelInfoOperation();
         }

@@ -1,13 +1,12 @@
-package com.ezhang.pop;
+package com.ezhang.pop.ui;
 
+import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
-import android.content.DialogInterface.OnDismissListener;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.view.LayoutInflater;
@@ -49,27 +48,17 @@ public class DiscountSettings {
 		((EditText)view.findViewById(R.id.coles_voucher)).setText(String.valueOf(m_colesDiscount));
 		((EditText)view.findViewById(R.id.wws_voucher)).setText(String.valueOf(m_wwsDiscount));
 		AlertDialog discountSettingsDlg = new AlertDialog.Builder(m_context)
-				.setTitle("Discount Settings").setView(view).setCancelable(true)
-				.setOnCancelListener(new OnCancelListener()
+				.setTitle("Discount Settings").setView(view).setCancelable(false)
+				.setPositiveButton("OK", new OnClickListener()
 				{
 					@Override
-					public void onCancel(DialogInterface arg0) {
-						String text = ((EditText)view.findViewById(R.id.coles_voucher)).getText().toString();
-						m_colesDiscount = GetIntFromText(text);
-						
-						text = ((EditText)view.findViewById(R.id.wws_voucher)).getText().toString();
-						m_wwsDiscount = GetIntFromText(text);
-						
-						Editor editor = m_settings.edit();
-						editor.putBoolean(HAS_DISCOUNT_SETTINGS, true);
-						editor.putInt(WWS_DISCOUNT_SETTINGS, m_wwsDiscount);
-						editor.putInt(COLES_DISCOUNT_SETTINGS, m_colesDiscount);
-						editor.commit();
-						
-						callable.Call(null);						
+					public void onClick(DialogInterface dialog, int which)
+					{
+						SaveSettings(view, callable);
 					}
 				}
-				).create();
+				)
+				.create();
 		
 		discountSettingsDlg.show();
 	}
@@ -83,5 +72,22 @@ public class DiscountSettings {
 		{
 			return 0;
 		}
+	}
+
+	private void SaveSettings(final View view,
+			final ICallable<Object, Object> callable) {
+		String text = ((EditText)view.findViewById(R.id.coles_voucher)).getText().toString();
+		m_colesDiscount = GetIntFromText(text);
+		
+		text = ((EditText)view.findViewById(R.id.wws_voucher)).getText().toString();
+		m_wwsDiscount = GetIntFromText(text);
+		
+		Editor editor = m_settings.edit();
+		editor.putBoolean(HAS_DISCOUNT_SETTINGS, true);
+		editor.putInt(WWS_DISCOUNT_SETTINGS, m_wwsDiscount);
+		editor.putInt(COLES_DISCOUNT_SETTINGS, m_colesDiscount);
+		editor.commit();
+		
+		callable.Call(null);
 	}
 }

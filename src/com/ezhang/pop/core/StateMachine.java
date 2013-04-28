@@ -30,6 +30,7 @@ public class StateMachine<EmState extends Enum<EmState>, EmEvent extends Enum<Em
 			{
 				return false;
 			}
+			@SuppressWarnings("unchecked")
 			Transition anotherAction = (Transition)obj;
 			return this.nextState == anotherAction.nextState &&
 					this.event == anotherAction.event;

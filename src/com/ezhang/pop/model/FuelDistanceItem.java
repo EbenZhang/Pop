@@ -10,6 +10,8 @@ public class FuelDistanceItem extends DistanceMatrixItem implements Parcelable {
 	public String tradingName;
 	public String latitude;
 	public String longitude;
+	public String voucherType;
+	public int voucher;
 	
 	public FuelDistanceItem()
 	{
@@ -24,6 +26,8 @@ public class FuelDistanceItem extends DistanceMatrixItem implements Parcelable {
 		this.tradingName = in.readString();
 		this.latitude = in.readString();
 		this.longitude = in.readString();
+		this.voucherType = in.readString();
+		this.voucher = in.readInt();
 	}
 
 	public static Comparator<FuelDistanceItem> GetComparer() {
@@ -34,7 +38,12 @@ public class FuelDistanceItem extends DistanceMatrixItem implements Parcelable {
 			Comparator<FuelDistanceItem> {
 		@Override
 		public int compare(FuelDistanceItem lhs, FuelDistanceItem rhs) {
-			return lhs.price.compareTo(rhs.price);
+			int compOfPrice = lhs.price.compareTo(rhs.price);
+			if( compOfPrice != 0)
+			{
+				return compOfPrice;
+			}
+			return lhs.distanceValue.compareTo(rhs.distanceValue);
 		}
 	}
 
@@ -53,6 +62,8 @@ public class FuelDistanceItem extends DistanceMatrixItem implements Parcelable {
 		dest.writeString(this.tradingName);
 		dest.writeString(this.latitude);
 		dest.writeString(this.longitude);
+		dest.writeString(this.voucherType);
+		dest.writeInt(this.voucher);
 	}
 	
 	public static final Parcelable.Creator<FuelDistanceItem> CREATOR = new Parcelable.Creator<FuelDistanceItem>() {

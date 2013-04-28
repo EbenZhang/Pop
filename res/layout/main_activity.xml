@@ -35,7 +35,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:background="@drawable/refresh_animation"
-            android:onClick="Refresh" />
+            android:onClick="OnRefreshClicked" />
 
         <ImageButton
             android:id="@+id/ShareButton"
@@ -43,9 +43,19 @@
             android:layout_height="50dp"
             android:background="#00000000"
             android:contentDescription="@string/share_with_friends"
-            android:onClick="ShareWithFriend"
+            android:onClick="OnShareWithFriendClicked"
             android:scaleType="fitCenter"
             android:src="@drawable/thumbsup" />
+        
+        <ImageButton
+            android:id="@+id/SettingsButton"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="#00000000"
+            android:contentDescription="@string/settings"
+            android:onClick="OnSettingsClicked"
+            android:scaleType="fitCenter"
+            android:src="@drawable/settings" />
     </LinearLayout>
 
     <TextView

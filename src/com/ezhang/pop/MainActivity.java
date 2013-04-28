@@ -2,19 +2,19 @@ package com.ezhang.pop;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
 import com.ezhang.pop.FuelStateMachine.EmEvent;
 import com.ezhang.pop.FuelStateMachine.EmState;
+import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.model.FuelDistanceItem;
+import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.rest.PopRequestManager;
 
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -40,9 +40,11 @@ public class MainActivity extends Activity implements Observer {
 	private ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
 	private ListView m_listView = null;
 	private static final String SAVED_DISTANCE_MATRIX_REQS = "com.ezhang.pop.saved.distance.matrix.reqs";
+	
 	Button m_refreshButton = null;
 	AnimationDrawable m_refreshButtonAnimation = null;
 	TextView m_statusText = null;
+	DiscountSettings m_discountSettings = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -69,21 +71,31 @@ public class MainActivity extends Activity implements Observer {
 				FuelDistanceItem fullObject = (FuelDistanceItem) o;
 				if (m_fuelStateMachine != null
 						&& m_fuelStateMachine.m_location != null) {
-					String url = String.format(Locale.ENGLISH,
-
-					"http://maps.google.com/maps?saddr=%s,%s&daddr=%s,%s",
-							m_fuelStateMachine.m_location.getLatitude(),
-							m_fuelStateMachine.m_location.getLongitude(),
-							fullObject.latitude, fullObject.longitude);
-					Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-					startActivity(i);
+					
+					NavigationLaunch launch = new NavigationLaunch(
+							MainActivity.this,
+							String.valueOf(m_fuelStateMachine.m_location.getLatitude()),
+							String.valueOf(m_fuelStateMachine.m_location.getLongitude()),
+							fullObject.latitude, fullObject.longitude
+							);
+					launch.Launch();
 				}
 			}
 		});
+		m_discountSettings = new DiscountSettings(this);
 	}
 
-	public void Refresh(View v) {
+	public void OnRefreshClicked(View v) {
 		this.m_fuelStateMachine.Refresh();
+	}
+	
+	public void OnSettingsClicked(View v) {
+		m_discountSettings.ShowSettingsDialog(new ICallable<Object, Object>() {
+			public Object Call(Object o) {
+				m_fuelStateMachine.ReCalculatePrice();
+				return o;
+			}
+		});
 	}
 
 	@Override
@@ -103,7 +115,16 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		
+		m_discountSettings.LoadSettings(new ICallable<Object, Object>() {
+			public Object Call(Object o) {
+				OnDiscountInfoLoaded();
+				return o;
+			}
+		});
+	}
 
+	private void OnDiscountInfoLoaded() {
 		if (m_locationManager == null) {
 			m_locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		}
@@ -120,6 +141,8 @@ public class MainActivity extends Activity implements Observer {
 
 			// Setting Dialog Title
 			alertDialog.setTitle("Network Access Required");
+			
+			alertDialog.setCancelable(false);
 
 			// Setting Dialog Message
 			alertDialog
@@ -139,8 +162,10 @@ public class MainActivity extends Activity implements Observer {
 			alertDialog.setNegativeButton("MobileNetwork",
 					new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int which) {
-							Intent intent = new Intent(Settings.ACTION_DATA_ROAMING_SETTINGS);
-							//intent.setClassName("com.android.phone", "com.android.phone.Settings");
+							Intent intent = new Intent(
+									Settings.ACTION_DATA_ROAMING_SETTINGS);
+							// intent.setClassName("com.android.phone",
+							// "com.android.phone.Settings");
 							MainActivity.this.startActivity(intent);
 						}
 					});
@@ -164,6 +189,7 @@ public class MainActivity extends Activity implements Observer {
 
 			// Setting Dialog Title
 			alertDialog.setTitle("Locaion Access Required");
+			alertDialog.setCancelable(false);
 
 			// Setting Dialog Message
 			alertDialog
@@ -186,7 +212,7 @@ public class MainActivity extends Activity implements Observer {
 
 		if (m_fuelStateMachine == null) {
 			m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-					this.m_locationManager);
+					this.m_locationManager, this.m_discountSettings);
 			m_fuelStateMachine.addObserver(this);
 		} else {
 			m_fuelStateMachine.Refresh();
@@ -255,7 +281,7 @@ public class MainActivity extends Activity implements Observer {
 		m_statusText.setVisibility(View.VISIBLE);
 	}
 
-	public void ShareWithFriend(View v) {
+	public void OnShareWithFriendClicked(View v) {
 		String content = "Hey, here is an awesome app that can list the comparison fuel price of the nearby stations.";
 		Intent shareIntent = new Intent(Intent.ACTION_SEND);
 		shareIntent.setType("text/plain");

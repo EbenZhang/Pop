@@ -2,6 +2,7 @@ package com.ezhang.pop;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -27,25 +28,27 @@ import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 
 public class FuelStateMachine extends Observable implements RequestListener {
-	
-	private static class TimerHandler extends Handler
-	{
+
+	private static class TimerHandler extends Handler {
 		FuelStateMachine m_fuelStateMachine = null;
+
 		public TimerHandler(FuelStateMachine fuelStateMachine) {
 			m_fuelStateMachine = fuelStateMachine;
 		}
 
 		@Override
 		public void handleMessage(Message msg) {
-			m_fuelStateMachine.m_stateMachine.HandleEvent(EmEvent.Timeout, null);
+			m_fuelStateMachine.m_stateMachine
+					.HandleEvent(EmEvent.Timeout, null);
 		}
 	}
+
 	enum EmState {
 		Start, GeoLocationRecieved, SuburbRecieved, FuelInfoRecieved, DistanceRecieved, Timeout
 	}
 
 	enum EmEvent {
-		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout
+		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout, RecalculatePrice
 	}
 
 	StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
@@ -61,12 +64,14 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	Timer m_timer = null;
 	TimerTask m_timerTask = null;
 	Handler m_timeoutHandler = new TimerHandler(this);
+	DiscountSettings m_discountSettings = null;
 
 	public FuelStateMachine(PopRequestManager reqManager,
-			LocationManager locationManager) {
+			LocationManager locationManager, DiscountSettings discountSettings) {
 
 		m_restReqManager = reqManager;
 		m_locationManager = locationManager;
+		m_discountSettings = discountSettings;
 
 		InitStateMachineTransitions();
 
@@ -270,6 +275,39 @@ public class FuelStateMachine extends Observable implements RequestListener {
 						Notify();
 					}
 				});
+		m_stateMachine.AddTransition(EmState.DistanceRecieved,
+				EmState.DistanceRecieved, EmEvent.RecalculatePrice, new EventAction() {
+					public void PerformAction(Bundle param) {
+						OnRecalculatePrice();
+						Notify();
+					}
+				});
+	}
+	
+	private void OnRecalculatePrice()
+	{
+		for(FuelDistanceItem item : this.m_fuelDistanceItems)
+		{
+			if(item.voucherType != null && item.voucherType != "")
+			{
+				if(item.voucherType == "wws")
+				{
+					if(m_discountSettings.m_wwsDiscount != item.voucher)
+					{
+						item.price += item.voucher - m_discountSettings.m_wwsDiscount;
+						item.voucher = m_discountSettings.m_wwsDiscount;
+					}
+				}
+				if(item.voucherType == "coles")
+				{
+					if(m_discountSettings.m_colesDiscount != item.voucher)
+					{
+						item.price += item.voucher - m_discountSettings.m_colesDiscount;
+						item.voucher = m_discountSettings.m_colesDiscount;
+					}
+				}
+			}
+		}
 	}
 
 	private void OnDistanceMatrixRecieved(DistanceMatrix distanceMatrix) {
@@ -278,14 +316,30 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		for (DistanceMatrixItem distanceItem : distanceMatrix
 				.GetDistanceItems()) {
 			FuelDistanceItem item = new FuelDistanceItem();
-			item.destinationAddr = distanceItem.destinationAddr;
 			item.distance = distanceItem.distance;
+			item.distanceValue = distanceItem.distanceValue;
 			item.duration = distanceItem.duration;
 			FuelInfo fuelInfo = this.m_fuelInfoList.get(i);
-			item.price = fuelInfo.price;
 			item.tradingName = fuelInfo.tradingName;
+			item.price = fuelInfo.price;
+			String lowTradingName = item.tradingName
+					.toLowerCase(Locale.ENGLISH);
+			if (lowTradingName.contains("woolworths")
+					&& m_discountSettings.m_wwsDiscount > 0) {
+				item.price -= m_discountSettings.m_wwsDiscount;
+				item.voucher = m_discountSettings.m_wwsDiscount;
+				item.voucherType = "wws";
+			} else if (lowTradingName.contains("coles")
+					&& m_discountSettings.m_colesDiscount > 0) {
+				item.price -= m_discountSettings.m_colesDiscount;
+				item.voucher = m_discountSettings.m_colesDiscount;
+				item.voucherType = "coles";
+			} else {
+				item.voucherType = "";
+			}
 			item.latitude = fuelInfo.latitude;
 			item.longitude = fuelInfo.longitude;
+			item.destinationAddr = fuelInfo.address;
 			m_fuelDistanceItems.add(item);
 			i++;
 		}
@@ -415,5 +469,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			RequestFuelInfo();
 		}
 		Notify();
+	}
+
+	public void ReCalculatePrice() {
+		this.m_stateMachine.HandleEvent(EmEvent.RecalculatePrice, null);		
 	}
 }

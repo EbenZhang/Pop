@@ -4,5 +4,11 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="share_with_friends">share with friends</string>
+    <string name="wws_voucher">Woolworth voucher</string>
+    <string name="coles_voucher">Coles voucher</string>
+    <string name="discount_unit">C</string>
+    <string name="default_discount">8</string>
+    <string name="settings">Settings</string>
+    
 
 </resources>

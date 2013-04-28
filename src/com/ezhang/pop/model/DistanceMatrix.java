@@ -19,6 +19,7 @@ public class DistanceMatrix implements Parcelable {
 			item.destinationAddr = this.destination_addresses.get(i);
 			item.distance = this.rows.get(0).elements.get(i).distance.text;
 			item.duration = this.rows.get(0).elements.get(i).duration.text;
+			item.distanceValue = Float.parseFloat(this.rows.get(0).elements.get(i).distance.value);
 			items.add(item);
 		}
 		return items;

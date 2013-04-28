@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <TextView
+            android:layout_width="136dp"
+            android:layout_height="wrap_content"
+            android:text="@string/wws_voucher" >
+        </TextView>
+
+        <EditText
+            android:id="@+id/wws_voucher"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:ems="3"
+            android:gravity="right"
+            android:inputType="number"
+            android:text="@string/default_discount" />
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/discount_unit" >
+        </TextView>
+
+    </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" >
+
+        <TextView
+            android:layout_width="134dp"
+            android:layout_height="wrap_content"
+            android:text="@string/coles_voucher" >
+        </TextView>
+
+        <EditText
+            android:id="@+id/coles_voucher"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:ems="3"
+            android:inputType="number" 
+            android:text="@string/default_discount"
+            android:gravity="right"/>
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/discount_unit" >
+        </TextView>
+
+    </LinearLayout>
+</LinearLayout>

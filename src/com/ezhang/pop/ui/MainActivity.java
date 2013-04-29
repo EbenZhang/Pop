@@ -145,8 +145,6 @@ public class MainActivity extends Activity implements Observer {
 			// Setting Dialog Title
 			alertDialog.setTitle("Network Access Required");
 
-			alertDialog.setCancelable(false);
-
 			// Setting Dialog Message
 			alertDialog
 					.setMessage("Network is not enabled. Press either enable Wi-Fi or Mobile Network Data");
@@ -192,7 +190,6 @@ public class MainActivity extends Activity implements Observer {
 
 			// Setting Dialog Title
 			alertDialog.setTitle("Locaion Access Required");
-			alertDialog.setCancelable(false);
 
 			// Setting Dialog Message
 			alertDialog

@@ -18,10 +18,8 @@ public class NavigationLaunch implements OnClickListener {
 	String m_dstLatitude;
 	String m_dstLongitude;
 
-	public NavigationLaunch(Activity activity,
-			String srcLatitude, String srcLongitude,
-			String dstLatitude, String dstLongitude
-			) {
+	public NavigationLaunch(Activity activity, String srcLatitude,
+			String srcLongitude, String dstLatitude, String dstLongitude) {
 		m_activity = activity;
 		m_apps = GetNavigationApps(activity);
 		m_srcLatitude = srcLatitude;
@@ -32,16 +30,12 @@ public class NavigationLaunch implements OnClickListener {
 
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
-		this.m_apps.get(which).CallNavigateApp(this.m_activity, 
-				m_srcLatitude, 
-				m_srcLongitude, 
-				m_dstLatitude,
-				m_dstLongitude);
+		this.m_apps.get(which).CallNavigateApp(this.m_activity, m_srcLatitude,
+				m_srcLongitude, m_dstLatitude, m_dstLongitude);
 	}
 
 	public void Launch() {
-		if(m_apps.size() == 1)
-		{
+		if (m_apps.size() == 1) {
 			onClick(null, 0);
 			return;
 		}
@@ -51,25 +45,33 @@ public class NavigationLaunch implements OnClickListener {
 			appsDesc[i++] = app.desc;
 		}
 		AlertDialog dialog = new AlertDialog.Builder(this.m_activity)
-				.setTitle("Select Navigation App").setItems(appsDesc, this).create();
+				.setTitle("Select Navigation App").setItems(appsDesc, this)
+				.create();
 		dialog.show();
 	}
-	
+
 	private List<NavigationApp> GetNavigationApps(Activity activity) {
 		List<NavigationApp> apps = new ArrayList<NavigationApp>();
-		apps.add(new GoogleNavigationApp());
 		PackageManager m_pm = activity.getPackageManager();
+
+		Intent gmaps = m_pm
+				.getLaunchIntentForPackage("com.google.android.apps.maps");
+		if (gmaps != null) {
+			apps.add(new GoogleNavigationApp());
+		}
+
 		Intent navigon = m_pm
 				.getLaunchIntentForPackage("android.intent.action.navigon.START_PUBLIC");
 		if (navigon != null) {
 			apps.add(new NavigonApp(navigon));
 		}
-		
+
 		Intent sygic = m_pm.getLaunchIntentForPackage("com.sygic.aura");
-		if(sygic != null)
-		{
+		if (sygic != null) {
 			apps.add(new SygicApp(sygic));
 		}
+
+		apps.add(new BuildinNavigationSelector());
 		return apps;
 	}
 }

@@ -20,6 +20,7 @@
             android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
+            android:selectAllOnFocus="true"
             android:gravity="right"
             android:inputType="number"
             android:text="@string/default_discount" />
@@ -48,6 +49,7 @@
             android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
+            android:selectAllOnFocus="true"
             android:inputType="number" 
             android:text="@string/default_discount"
             android:gravity="right"/>

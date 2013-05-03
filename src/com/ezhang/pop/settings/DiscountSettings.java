@@ -1,4 +1,4 @@
-package com.ezhang.pop.ui;
+package com.ezhang.pop.settings;
 
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
@@ -9,43 +9,48 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
 public class DiscountSettings {
-	private static final String PREFS_NAME = "com.ezhang.pop.discount.preference";
-	private static final String HAS_DISCOUNT_SETTINGS = "com.ezhang.pop.discount.has.discount.settings";
-	private static final String WWS_DISCOUNT_SETTINGS = "com.ezhang.pop.discount.wws";
-	private static final String COLES_DISCOUNT_SETTINGS = "com.ezhang.pop.discount.coles";
+	private static final String HAS_DISCOUNT_SETTINGS = "key.has.discount.settings";
 	private final Context m_context;
-	public int m_colesDiscount = 0;
-	public int m_wwsDiscount = 0;
+	public int m_colesDiscount = 8;
+	public int m_wwsDiscount = 8;
 	SharedPreferences m_settings = null;
 	private AlertDialog m_discountSettingsDlg;
 
 	public DiscountSettings(Context context) {
 		m_context = context;
-		m_settings = this.m_context.getSharedPreferences(PREFS_NAME, 0);
+		m_settings = PreferenceManager.getDefaultSharedPreferences(m_context);
 	}
-
+	
 	public void LoadSettings(final ICallable<Object, Object> callable) {
 		boolean hasDiscountSettings = m_settings.getBoolean(
 				HAS_DISCOUNT_SETTINGS, false);
 		if (hasDiscountSettings) {
-			m_wwsDiscount = m_settings.getInt(WWS_DISCOUNT_SETTINGS, 0);
-			m_colesDiscount = m_settings.getInt(COLES_DISCOUNT_SETTINGS, 0);
+			String wwsDiscount = m_settings.getString(
+					m_context.getString(R.string.wws_discount_settings), "8");
+			m_wwsDiscount = Integer.parseInt(wwsDiscount);
+			
+			String colesDiscount = m_settings.getString(
+					m_context.getString(R.string.coles_discount_settings), "8");
+			
+			m_colesDiscount = Integer.parseInt(colesDiscount);
+			
 			callable.Call(null);
 		} else {
 			ShowSettingsDialog(callable);
 		}
 	}
 
-	public void ShowSettingsDialog(final ICallable<Object, Object> callable) {
+	private void ShowSettingsDialog(final ICallable<Object, Object> callable) {
 		if (m_discountSettingsDlg != null && m_discountSettingsDlg.isShowing()) {
 			return;
 		}
-		
+
 		if (m_discountSettingsDlg == null) {
 			LayoutInflater factory = LayoutInflater.from(this.m_context);
 			final View view = factory.inflate(R.layout.discount_settings, null);
@@ -66,28 +71,23 @@ public class DiscountSettings {
 		m_discountSettingsDlg.show();
 	}
 
-	private int GetIntFromText(String text) {
-		if (text != "") {
-			return Integer.parseInt(text);
-		} else {
-			return 0;
-		}
-	}
-
 	private void SaveSettings(final View view,
 			final ICallable<Object, Object> callable) {
-		String text = ((EditText) view.findViewById(R.id.coles_voucher))
+		String colesDiscount = ((EditText) view.findViewById(R.id.coles_voucher))
 				.getText().toString();
-		m_colesDiscount = GetIntFromText(text);
+		
+		m_colesDiscount = Integer.parseInt(colesDiscount); 
 
-		text = ((EditText) view.findViewById(R.id.wws_voucher)).getText()
-				.toString();
-		m_wwsDiscount = GetIntFromText(text);
+		String wwsDiscount = ((EditText) view.findViewById(R.id.wws_voucher))
+				.getText().toString();
+		m_wwsDiscount = Integer.parseInt(wwsDiscount);
 
 		Editor editor = m_settings.edit();
 		editor.putBoolean(HAS_DISCOUNT_SETTINGS, true);
-		editor.putInt(WWS_DISCOUNT_SETTINGS, m_wwsDiscount);
-		editor.putInt(COLES_DISCOUNT_SETTINGS, m_colesDiscount);
+		editor.putString(m_context.getString(R.string.wws_discount_settings),
+				wwsDiscount);
+		editor.putString(m_context.getString(R.string.coles_discount_settings),
+				colesDiscount);
 		editor.commit();
 
 		callable.Call(null);

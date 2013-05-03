@@ -10,6 +10,9 @@ import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.rest.PopRequestManager;
+import com.ezhang.pop.settings.DiscountSettings;
+import com.ezhang.pop.settings.SettingsActivity;
+import com.ezhang.pop.settings.SuburbsSettings;
 import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
 import com.ezhang.pop.ui.FuelStateMachine.EmState;
 
@@ -48,6 +51,7 @@ public class MainActivity extends Activity implements Observer {
 	DiscountSettings m_discountSettings = null;
 	AlertDialog m_networkAlertDlg = null;
 	AlertDialog m_locationAccessDlg = null;
+	SuburbsSettings m_suburbsSettings = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +92,7 @@ public class MainActivity extends Activity implements Observer {
 			}
 		});
 		m_discountSettings = new DiscountSettings(this);
+		m_suburbsSettings = new SuburbsSettings(this);
 	}
 
 	public void OnRefreshClicked(View v) {
@@ -95,12 +100,8 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	public void OnSettingsClicked(View v) {
-		m_discountSettings.ShowSettingsDialog(new ICallable<Object, Object>() {
-			public Object Call(Object o) {
-				m_fuelStateMachine.ReCalculatePrice();
-				return o;
-			}
-		});
+		Intent intent = new Intent(this, SettingsActivity.class);
+		this.startActivity(intent);
 	}
 
 	@Override
@@ -167,7 +168,7 @@ public class MainActivity extends Activity implements Observer {
 
 		if (m_fuelStateMachine == null) {
 			m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-					this.m_locationManager, this.m_discountSettings);
+					this.m_locationManager, this.m_discountSettings, this.m_suburbsSettings);
 			m_fuelStateMachine.addObserver(this);
 		} else {
 			m_fuelStateMachine.Refresh();

@@ -24,6 +24,8 @@ import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.model.FuelInfo;
 import com.ezhang.pop.rest.PopRequestFactory;
 import com.ezhang.pop.rest.PopRequestManager;
+import com.ezhang.pop.settings.DiscountSettings;
+import com.ezhang.pop.settings.SuburbsSettings;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 
@@ -66,20 +68,23 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	TimerTask m_timerTask = null;
 	Handler m_timeoutHandler = new TimerHandler(this);
 	DiscountSettings m_discountSettings = null;
+	SuburbsSettings m_suburbSettings = null;
 
 	public FuelStateMachine(PopRequestManager reqManager,
-			LocationManager locationManager, DiscountSettings discountSettings) {
+			LocationManager locationManager, DiscountSettings discountSettings,
+			SuburbsSettings suburbSettings) {
 
 		m_restReqManager = reqManager;
 		m_locationManager = locationManager;
 		m_discountSettings = discountSettings;
+		m_suburbSettings = suburbSettings;
 
 		InitStateMachineTransitions();
 
 		m_provider = GetBestProvider();
 		if (m_provider != null) {
-			m_locationManager.requestLocationUpdates(m_provider,
-					2 * 60 * 1000L, 500.0f, this.m_locationListener);
+			m_locationManager.requestLocationUpdates(m_provider, 60 * 1000L,
+					20.0f, this.m_locationListener);
 		}
 
 		this.m_location = this.m_locationManager
@@ -163,9 +168,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
 								.getString(PopRequestFactory.BUNDLE_CUR_SUBURB_DATA);
 						m_address = param
 								.getString(PopRequestFactory.BUNDLE_CUR_ADDRESS_DATA);
-						if(m_suburb == "")
-						{
-							m_stateMachine.SetState(EmState.GeoLocationRecieved);
+						if (m_suburb == "") {
+							m_stateMachine
+									.SetState(EmState.GeoLocationRecieved);
 							RequestSuburb();
 							return;
 						}
@@ -285,33 +290,29 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 		m_stateMachine.AddTransition(EmState.DistanceRecieved,
-				EmState.DistanceRecieved, EmEvent.RecalculatePrice, new EventAction() {
+				EmState.DistanceRecieved, EmEvent.RecalculatePrice,
+				new EventAction() {
 					public void PerformAction(Bundle param) {
 						OnRecalculatePrice();
 						Notify();
 					}
 				});
 	}
-	
-	private void OnRecalculatePrice()
-	{
-		for(FuelDistanceItem item : this.m_fuelDistanceItems)
-		{
-			if(item.voucherType != null && item.voucherType != "")
-			{
-				if(item.voucherType == "wws")
-				{
-					if(m_discountSettings.m_wwsDiscount != item.voucher)
-					{
-						item.price += item.voucher - m_discountSettings.m_wwsDiscount;
+
+	private void OnRecalculatePrice() {
+		for (FuelDistanceItem item : this.m_fuelDistanceItems) {
+			if (item.voucherType != null && item.voucherType != "") {
+				if (item.voucherType == "wws") {
+					if (m_discountSettings.m_wwsDiscount != item.voucher) {
+						item.price += item.voucher
+								- m_discountSettings.m_wwsDiscount;
 						item.voucher = m_discountSettings.m_wwsDiscount;
 					}
 				}
-				if(item.voucherType == "coles")
-				{
-					if(m_discountSettings.m_colesDiscount != item.voucher)
-					{
-						item.price += item.voucher - m_discountSettings.m_colesDiscount;
+				if (item.voucherType == "coles") {
+					if (m_discountSettings.m_colesDiscount != item.voucher) {
+						item.price += item.voucher
+								- m_discountSettings.m_colesDiscount;
 						item.voucher = m_discountSettings.m_colesDiscount;
 					}
 				}
@@ -390,7 +391,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
 	private void RequestFuelInfo() {
 		StartTimer(5000);
-		Request req = PopRequestFactory.GetFuelInfoRequest(m_suburb);
+		Request req = PopRequestFactory.GetFuelInfoRequest(m_suburb,
+				m_suburbSettings.IncludeSurroundings());
 		m_restReqManager.execute(req, this);
 	}
 
@@ -481,6 +483,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	public void ReCalculatePrice() {
-		this.m_stateMachine.HandleEvent(EmEvent.RecalculatePrice, null);		
+		this.m_stateMachine.HandleEvent(EmEvent.RecalculatePrice, null);
 	}
 }

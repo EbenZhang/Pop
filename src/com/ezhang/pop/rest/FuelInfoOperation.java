@@ -19,15 +19,18 @@ import com.foxykeep.datadroid.service.RequestService.Operation;
 
 public class FuelInfoOperation implements Operation {
 	public static final String SUBURB = "com.ezhang.pop.current.suburb";
+	public static final String INCLUDE_SURROUNDING = "com.ezhang.pop.include.surrounding";
 
 	@Override
 	public Bundle execute(Context context, Request request)
 			throws ConnectionException, DataException {
 		String suburb = request.getString(SUBURB);
+		boolean includeSurrounding = request.getBoolean(INCLUDE_SURROUNDING);
+		String includeSurroundingString = includeSurrounding? "yes":"no";
 
 		String qry = String
-				.format("http://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s",
-						suburb);
+				.format("http://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s&Surrounding=%s",
+						suburb, includeSurroundingString);
 
 		NetworkConnection networkConnection = new NetworkConnection(context,
 				qry);

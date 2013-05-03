@@ -1,0 +1,11 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/suburb_settings" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/surrounding_suburbs_settings_key"
+            android:summary="@string/surrounding_suburbs_settings_summary"
+            android:title="@string/surrounding_suburbs_settings" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

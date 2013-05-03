@@ -43,10 +43,11 @@ public class PopRequestFactory {
         return request;
     }
 
-	public static Request GetFuelInfoRequest(String m_suburb) {
+	public static Request GetFuelInfoRequest(String m_suburb, boolean includeSurrounding) {
 		Request request = new Request(REQ_TYPE_FUEL);
         request.setMemoryCacheEnabled(true);
         request.put(FuelInfoOperation.SUBURB, m_suburb);
+        request.put(FuelInfoOperation.INCLUDE_SURROUNDING, includeSurrounding);
         return request;
 	}
 }

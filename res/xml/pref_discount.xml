@@ -1,0 +1,24 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/discount_settings" android:summary="@string/discount_settings_summary" >
+    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+    <EditTextPreference
+        android:defaultValue="@string/default_discount"
+        android:inputType="number"
+        android:key="@string/wws_discount_settings"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/wws_voucher" />
+    <!-- NOTE: EditTextPreference accepts EditText attributes. -->
+    <!-- NOTE: EditTextPreference's summary should be set to its value by the activity code. -->
+    <EditTextPreference
+        android:defaultValue="@string/default_discount"
+        android:inputType="number"
+        android:key="@string/coles_discount_settings"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="@string/coles_voucher" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

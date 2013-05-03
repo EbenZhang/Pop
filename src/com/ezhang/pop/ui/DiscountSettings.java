@@ -22,14 +22,14 @@ public class DiscountSettings {
 	public int m_colesDiscount = 0;
 	public int m_wwsDiscount = 0;
 	SharedPreferences m_settings = null;
+	private AlertDialog m_discountSettingsDlg;
 
 	public DiscountSettings(Context context) {
 		m_context = context;
-		m_settings = this.m_context.getSharedPreferences(
-				PREFS_NAME, 0);
+		m_settings = this.m_context.getSharedPreferences(PREFS_NAME, 0);
 	}
 
-	public void LoadSettings(final ICallable<Object,Object> callable) {
+	public void LoadSettings(final ICallable<Object, Object> callable) {
 		boolean hasDiscountSettings = m_settings.getBoolean(
 				HAS_DISCOUNT_SETTINGS, false);
 		if (hasDiscountSettings) {
@@ -42,52 +42,54 @@ public class DiscountSettings {
 	}
 
 	public void ShowSettingsDialog(final ICallable<Object, Object> callable) {
-		LayoutInflater factory = LayoutInflater.from(this.m_context);
+		if (m_discountSettingsDlg != null && m_discountSettingsDlg.isShowing()) {
+			return;
+		}
 		
-		final View view = factory.inflate(R.layout.discount_settings, null);
-		((EditText)view.findViewById(R.id.coles_voucher)).setText(String.valueOf(m_colesDiscount));
-		((EditText)view.findViewById(R.id.wws_voucher)).setText(String.valueOf(m_wwsDiscount));
-		AlertDialog discountSettingsDlg = new AlertDialog.Builder(m_context)
-				.setTitle("Discount Settings").setView(view).setCancelable(false)
-				.setPositiveButton("OK", new OnClickListener()
-				{
-					@Override
-					public void onClick(DialogInterface dialog, int which)
-					{
-						SaveSettings(view, callable);
-					}
-				}
-				)
-				.create();
-		
-		discountSettingsDlg.show();
+		if (m_discountSettingsDlg == null) {
+			LayoutInflater factory = LayoutInflater.from(this.m_context);
+			final View view = factory.inflate(R.layout.discount_settings, null);
+			((EditText) view.findViewById(R.id.coles_voucher)).setText(String
+					.valueOf(m_colesDiscount));
+			((EditText) view.findViewById(R.id.wws_voucher)).setText(String
+					.valueOf(m_wwsDiscount));
+			m_discountSettingsDlg = new AlertDialog.Builder(m_context)
+					.setTitle("Discount Settings").setView(view)
+					.setCancelable(false)
+					.setPositiveButton("OK", new OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							SaveSettings(view, callable);
+						}
+					}).create();
+		}
+		m_discountSettingsDlg.show();
 	}
 
 	private int GetIntFromText(String text) {
-		if(text != "")
-		{
+		if (text != "") {
 			return Integer.parseInt(text);
-		}
-		else
-		{
+		} else {
 			return 0;
 		}
 	}
 
 	private void SaveSettings(final View view,
 			final ICallable<Object, Object> callable) {
-		String text = ((EditText)view.findViewById(R.id.coles_voucher)).getText().toString();
+		String text = ((EditText) view.findViewById(R.id.coles_voucher))
+				.getText().toString();
 		m_colesDiscount = GetIntFromText(text);
-		
-		text = ((EditText)view.findViewById(R.id.wws_voucher)).getText().toString();
+
+		text = ((EditText) view.findViewById(R.id.wws_voucher)).getText()
+				.toString();
 		m_wwsDiscount = GetIntFromText(text);
-		
+
 		Editor editor = m_settings.edit();
 		editor.putBoolean(HAS_DISCOUNT_SETTINGS, true);
 		editor.putInt(WWS_DISCOUNT_SETTINGS, m_wwsDiscount);
 		editor.putInt(COLES_DISCOUNT_SETTINGS, m_colesDiscount);
 		editor.commit();
-		
+
 		callable.Call(null);
 	}
 }

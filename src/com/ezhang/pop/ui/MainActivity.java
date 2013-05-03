@@ -46,6 +46,8 @@ public class MainActivity extends Activity implements Observer {
 	AnimationDrawable m_refreshButtonAnimation = null;
 	TextView m_statusText = null;
 	DiscountSettings m_discountSettings = null;
+	AlertDialog m_networkAlertDlg = null;
+	AlertDialog m_locationAccessDlg = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -139,40 +141,10 @@ public class MainActivity extends Activity implements Observer {
 			hasNetwork = network.isConnectedOrConnecting();
 		}
 		if (!hasNetwork) {
-
-			AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-			// Setting Dialog Title
-			alertDialog.setTitle("Network Access Required");
-
-			// Setting Dialog Message
-			alertDialog
-					.setMessage("Network is not enabled. Press either enable Wi-Fi or Mobile Network Data");
-
-			// On pressing Settings button
-			alertDialog.setPositiveButton("Wi-Fi",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							Intent intent = new Intent(
-									Settings.ACTION_WIFI_SETTINGS);
-							MainActivity.this.startActivity(intent);
-						}
-					});
-
-			// On pressing Settings button
-			alertDialog.setNegativeButton("MobileNetwork",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							Intent intent = new Intent(
-									Settings.ACTION_DATA_ROAMING_SETTINGS);
-							// intent.setClassName("com.android.phone",
-							// "com.android.phone.Settings");
-							MainActivity.this.startActivity(intent);
-						}
-					});
-
-			// Showing Alert Message
-			alertDialog.show();
+			CreateNetworkAlertDlg();
+			if (!m_networkAlertDlg.isShowing()) {
+				m_networkAlertDlg.show();
+			}
 			return;
 		}
 
@@ -186,27 +158,10 @@ public class MainActivity extends Activity implements Observer {
 													// supported by simulator.
 
 		if (!isGPSEnabled || !isNetworkLocationEnabled) {
-			AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-			// Setting Dialog Title
-			alertDialog.setTitle("Locaion Access Required");
-
-			// Setting Dialog Message
-			alertDialog
-					.setMessage("Locaion Access is not enabled. Press go to the settings menu and enbale both \n * GPS satellites\n * Wi-Fi & mobile network");
-
-			// On pressing Settings button
-			alertDialog.setPositiveButton("Go",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int which) {
-							Intent intent = new Intent(
-									Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-							MainActivity.this.startActivity(intent);
-						}
-					});
-
-			// Showing Alert Message
-			alertDialog.show();
+			CreateLocationAccessAlertDlg();
+			if (!m_locationAccessDlg.isShowing()) {
+				m_locationAccessDlg.show();
+			}
 			return;
 		}
 
@@ -219,6 +174,69 @@ public class MainActivity extends Activity implements Observer {
 		}
 		m_statusText.setText("Waiting For Location Information");
 		SwitchToWaitingStatus();
+	}
+
+	private void CreateLocationAccessAlertDlg() {
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+		// Setting Dialog Title
+		alertDialog.setTitle("Locaion Access Required");
+
+		// Setting Dialog Message
+		alertDialog
+				.setMessage("Locaion Access is not enabled. Press go to the settings menu and enbale both \n * GPS satellites\n * Wi-Fi & mobile network");
+
+		// On pressing Settings button
+		alertDialog.setPositiveButton("Go",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(
+								Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+						MainActivity.this.startActivity(intent);
+					}
+				});
+
+		// Showing Alert Message
+		m_locationAccessDlg = alertDialog.create();
+	}
+
+	private void CreateNetworkAlertDlg() {
+		if (m_networkAlertDlg != null) {
+			return;
+		}
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+
+		// Setting Dialog Title
+		alertDialogBuilder.setTitle("Network Access Required");
+
+		// Setting Dialog Message
+		alertDialogBuilder
+				.setMessage("Network is not enabled. Press either enable Wi-Fi or Mobile Network Data");
+
+		// On pressing Settings button
+		alertDialogBuilder.setPositiveButton("Wi-Fi",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(
+								Settings.ACTION_WIFI_SETTINGS);
+						MainActivity.this.startActivity(intent);
+					}
+				});
+
+		// On pressing Settings button
+		alertDialogBuilder.setNegativeButton("MobileNetwork",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int which) {
+						Intent intent = new Intent(
+								Settings.ACTION_DATA_ROAMING_SETTINGS);
+						// intent.setClassName("com.android.phone",
+						// "com.android.phone.Settings");
+						MainActivity.this.startActivity(intent);
+					}
+				});
+
+		// Showing Alert Message
+		m_networkAlertDlg = alertDialogBuilder.create();
 	}
 
 	@Override
@@ -301,7 +319,8 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	public void OnShareWithFriendClicked(View v) {
-		String content = "Hey, here is an awesome app that can list the comparison fuel price of the nearby stations.";
+		String url = String.format("https://play.google.com/store/apps/details?id=%s", getApplicationContext().getPackageName());
+		String content = "Hey, I'm using WaFuelFuel, an awesome app helps find cheapest fuel station nearby.\nCheck it out in GooglePlay: " + url;
 		Intent shareIntent = new Intent(Intent.ACTION_SEND);
 		shareIntent.setType("text/plain");
 		shareIntent.putExtra(Intent.EXTRA_TEXT, content);

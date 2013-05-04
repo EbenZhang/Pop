@@ -175,6 +175,9 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	private void CreateLocationAccessAlertDlg() {
+		if (m_locationAccessDlg != null) {
+			return;
+		}
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
 		// Setting Dialog Title
@@ -317,8 +320,11 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	public void OnShareWithFriendClicked(View v) {
-		String url = String.format("https://play.google.com/store/apps/details?id=%s", getApplicationContext().getPackageName());
-		String content = "Hey, I'm using WaFuelFuel, an awesome app can help find the cheapest fuel station nearby.\nCheck it out in GooglePlay: " + url;
+		String url = String.format(
+				"https://play.google.com/store/apps/details?id=%s",
+				getApplicationContext().getPackageName());
+		String content = "Hey, I'm using WaFuelFuel, an awesome app can help find the cheapest fuel station nearby.\nCheck it out in GooglePlay: "
+				+ url;
 		Intent shareIntent = new Intent(Intent.ACTION_SEND);
 		shareIntent.setType("text/plain");
 		shareIntent.putExtra(Intent.EXTRA_TEXT, content);

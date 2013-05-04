@@ -13,7 +13,7 @@
         ads:adSize="BANNER"
         ads:adUnitId="a1517d1d195f6bf"
         ads:loadAdOnCreate="true"
-        ads:testDevices="TEST_EMULATOR, 5FB467EED5390FEA3A5783A65E2589B7" />
+        ads:testDevices="TEST_EMULATOR" />
 
     <RelativeLayout
         android:layout_width="match_parent"

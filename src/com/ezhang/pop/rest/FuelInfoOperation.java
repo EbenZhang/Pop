@@ -20,6 +20,7 @@ import com.foxykeep.datadroid.service.RequestService.Operation;
 public class FuelInfoOperation implements Operation {
 	public static final String SUBURB = "com.ezhang.pop.current.suburb";
 	public static final String INCLUDE_SURROUNDING = "com.ezhang.pop.include.surrounding";
+	public static final String FUEL_TYPE = "com.ezhang.pop.fueltype";
 
 	@Override
 	public Bundle execute(Context context, Request request)
@@ -27,10 +28,11 @@ public class FuelInfoOperation implements Operation {
 		String suburb = request.getString(SUBURB);
 		boolean includeSurrounding = request.getBoolean(INCLUDE_SURROUNDING);
 		String includeSurroundingString = includeSurrounding? "yes":"no";
+		int fuelType = request.getInt(FUEL_TYPE);
 
 		String qry = String
-				.format("http://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s&Surrounding=%s",
-						suburb, includeSurroundingString);
+				.format("http://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s&Surrounding=%s&Product=%d",
+						suburb, includeSurroundingString, fuelType);
 
 		NetworkConnection networkConnection = new NetworkConnection(context,
 				qry);

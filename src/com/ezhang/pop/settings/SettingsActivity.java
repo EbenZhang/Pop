@@ -106,6 +106,9 @@ public class SettingsActivity extends PreferenceActivity {
 		// Add 'pref_additional_suburbs' preferences
 		addPreferencesFromResource(R.xml.pref_suburbs);
 
+		// Add 'pref_additional_suburbs' preferences
+		addPreferencesFromResource(R.xml.pref_fueltype);
+
 		// Bind the summaries of EditText/List/Dialog/Ringtone preferences to
 		// their values. When their values change, their summaries are updated
 		// to reflect the new value, per the Android Design guidelines.
@@ -118,6 +121,9 @@ public class SettingsActivity extends PreferenceActivity {
 		bindPreferenceSummaryToValue(
 				getString(R.string.discount_summary_prefix),
 				findPreference(getString(R.string.coles_discount_settings)));
+		bindPreferenceSummaryToValue(
+				getString(R.string.discount_summary_prefix),
+				findPreference(getString(R.string.fueltype_settings_key)));
 	}
 
 	/** {@inheritDoc} */
@@ -160,8 +166,8 @@ public class SettingsActivity extends PreferenceActivity {
 	 * A preference value change listener that updates the preference's summary
 	 * to reflect its new value.
 	 */
-	private static class EditTextPrefrenceChangeListener implements Preference.OnPreferenceChangeListener
-	{
+	private static class EditTextPrefrenceChangeListener implements
+			Preference.OnPreferenceChangeListener {
 		private String m_prefix;
 
 		@Override
@@ -178,6 +184,17 @@ public class SettingsActivity extends PreferenceActivity {
 					preference.setSummary(stringValue);
 				}
 			}
+			else if (preference instanceof ListPreference) {
+				// For list preferences, look up the correct display value in
+				// the preference's 'entries' list.
+				ListPreference listPreference = (ListPreference) preference;
+				int index = listPreference.findIndexOfValue(stringValue);
+
+				String text = index >= 0 ? (String)listPreference.getEntries()[index]: "";
+				// Set the summary to reflect the new value.
+				preference
+						.setSummary(m_prefix + text);
+			}
 			return true;
 		}
 
@@ -185,6 +202,7 @@ public class SettingsActivity extends PreferenceActivity {
 			m_prefix = prefix;
 		}
 	}
+
 	private static EditTextPrefrenceChangeListener sBindPreferenceSummaryToValueListener = new EditTextPrefrenceChangeListener();
 
 	/**
@@ -200,7 +218,7 @@ public class SettingsActivity extends PreferenceActivity {
 			Preference preference) {
 
 		sBindPreferenceSummaryToValueListener.SetPrefix(prefix);
-		
+
 		// Set the listener to watch for value changes.
 		preference
 				.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
@@ -239,12 +257,24 @@ public class SettingsActivity extends PreferenceActivity {
 	 * activity is showing a two-pane settings UI.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class AdditionalSuburbsPreferenceFragment extends
-			PreferenceFragment {
+	public static class SuburbsPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
 			addPreferencesFromResource(R.xml.pref_suburbs);
+		}
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static class FueltypePreferenceFragment extends PreferenceFragment {
+		@Override
+		public void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			addPreferencesFromResource(R.xml.pref_fueltype);
+			
+			bindPreferenceSummaryToValue(
+					getString(R.string.discount_settings_summary),
+					findPreference(getString(R.string.fueltype_settings_key)));
 		}
 	}
 }

@@ -10,9 +10,8 @@ import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.rest.PopRequestManager;
-import com.ezhang.pop.settings.DiscountSettings;
+import com.ezhang.pop.settings.AppSettings;
 import com.ezhang.pop.settings.SettingsActivity;
-import com.ezhang.pop.settings.SuburbsSettings;
 import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
 import com.ezhang.pop.ui.FuelStateMachine.EmState;
 
@@ -48,10 +47,9 @@ public class MainActivity extends Activity implements Observer {
 	Button m_refreshButton = null;
 	AnimationDrawable m_refreshButtonAnimation = null;
 	TextView m_statusText = null;
-	DiscountSettings m_discountSettings = null;
+	AppSettings m_settings = null;
 	AlertDialog m_networkAlertDlg = null;
 	AlertDialog m_locationAccessDlg = null;
-	SuburbsSettings m_suburbsSettings = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -91,8 +89,7 @@ public class MainActivity extends Activity implements Observer {
 				}
 			}
 		});
-		m_discountSettings = new DiscountSettings(this);
-		m_suburbsSettings = new SuburbsSettings(this);
+		m_settings = new AppSettings(this);
 	}
 
 	public void OnRefreshClicked(View v) {
@@ -122,7 +119,7 @@ public class MainActivity extends Activity implements Observer {
 	protected void onResume() {
 		super.onResume();
 
-		m_discountSettings.LoadSettings(new ICallable<Object, Object>() {
+		m_settings.LoadDiscountSettings(new ICallable<Object, Object>() {
 			public Object Call(Object o) {
 				OnDiscountInfoLoaded();
 				return o;
@@ -168,7 +165,7 @@ public class MainActivity extends Activity implements Observer {
 
 		if (m_fuelStateMachine == null) {
 			m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-					this.m_locationManager, this.m_discountSettings, this.m_suburbsSettings);
+					this.m_locationManager, this.m_settings);
 			m_fuelStateMachine.addObserver(this);
 		} else {
 			m_fuelStateMachine.Refresh();
@@ -321,7 +318,7 @@ public class MainActivity extends Activity implements Observer {
 
 	public void OnShareWithFriendClicked(View v) {
 		String url = String.format("https://play.google.com/store/apps/details?id=%s", getApplicationContext().getPackageName());
-		String content = "Hey, I'm using WaFuelFuel, an awesome app helps find cheapest fuel station nearby.\nCheck it out in GooglePlay: " + url;
+		String content = "Hey, I'm using WaFuelFuel, an awesome app can help find the cheapest fuel station nearby.\nCheck it out in GooglePlay: " + url;
 		Intent shareIntent = new Intent(Intent.ACTION_SEND);
 		shareIntent.setType("text/plain");
 		shareIntent.putExtra(Intent.EXTRA_TEXT, content);

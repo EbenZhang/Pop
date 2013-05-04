@@ -24,8 +24,7 @@ import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.model.FuelInfo;
 import com.ezhang.pop.rest.PopRequestFactory;
 import com.ezhang.pop.rest.PopRequestManager;
-import com.ezhang.pop.settings.DiscountSettings;
-import com.ezhang.pop.settings.SuburbsSettings;
+import com.ezhang.pop.settings.AppSettings;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 
@@ -67,17 +66,14 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	Timer m_timer = null;
 	TimerTask m_timerTask = null;
 	Handler m_timeoutHandler = new TimerHandler(this);
-	DiscountSettings m_discountSettings = null;
-	SuburbsSettings m_suburbSettings = null;
+	AppSettings m_settings = null;
 
 	public FuelStateMachine(PopRequestManager reqManager,
-			LocationManager locationManager, DiscountSettings discountSettings,
-			SuburbsSettings suburbSettings) {
+			LocationManager locationManager, AppSettings settings) {
 
 		m_restReqManager = reqManager;
 		m_locationManager = locationManager;
-		m_discountSettings = discountSettings;
-		m_suburbSettings = suburbSettings;
+		m_settings = settings;
 
 		InitStateMachineTransitions();
 
@@ -303,17 +299,17 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		for (FuelDistanceItem item : this.m_fuelDistanceItems) {
 			if (item.voucherType != null && item.voucherType != "") {
 				if (item.voucherType == "wws") {
-					if (m_discountSettings.m_wwsDiscount != item.voucher) {
+					if (m_settings.m_wwsDiscount != item.voucher) {
 						item.price += item.voucher
-								- m_discountSettings.m_wwsDiscount;
-						item.voucher = m_discountSettings.m_wwsDiscount;
+								- m_settings.m_wwsDiscount;
+						item.voucher = m_settings.m_wwsDiscount;
 					}
 				}
 				if (item.voucherType == "coles") {
-					if (m_discountSettings.m_colesDiscount != item.voucher) {
+					if (m_settings.m_colesDiscount != item.voucher) {
 						item.price += item.voucher
-								- m_discountSettings.m_colesDiscount;
-						item.voucher = m_discountSettings.m_colesDiscount;
+								- m_settings.m_colesDiscount;
+						item.voucher = m_settings.m_colesDiscount;
 					}
 				}
 			}
@@ -335,14 +331,14 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			String lowTradingName = item.tradingName
 					.toLowerCase(Locale.ENGLISH);
 			if (lowTradingName.contains("woolworths")
-					&& m_discountSettings.m_wwsDiscount > 0) {
-				item.price -= m_discountSettings.m_wwsDiscount;
-				item.voucher = m_discountSettings.m_wwsDiscount;
+					&& m_settings.m_wwsDiscount > 0) {
+				item.price -= m_settings.m_wwsDiscount;
+				item.voucher = m_settings.m_wwsDiscount;
 				item.voucherType = "wws";
 			} else if (lowTradingName.contains("coles")
-					&& m_discountSettings.m_colesDiscount > 0) {
-				item.price -= m_discountSettings.m_colesDiscount;
-				item.voucher = m_discountSettings.m_colesDiscount;
+					&& m_settings.m_colesDiscount > 0) {
+				item.price -= m_settings.m_colesDiscount;
+				item.voucher = m_settings.m_colesDiscount;
 				item.voucherType = "coles";
 			} else {
 				item.voucherType = "";
@@ -392,7 +388,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	private void RequestFuelInfo() {
 		StartTimer(5000);
 		Request req = PopRequestFactory.GetFuelInfoRequest(m_suburb,
-				m_suburbSettings.IncludeSurroundings());
+				m_settings.IncludeSurroundings(), m_settings.GetFuelType());
 		m_restReqManager.execute(req, this);
 	}
 

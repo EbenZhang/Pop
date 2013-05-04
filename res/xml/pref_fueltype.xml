@@ -1,0 +1,12 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory android:title="@string/fueltype_settings" >
+        <ListPreference
+            android:defaultValue="@string/pref_fueltypes_default"
+            android:key="@string/fueltype_settings_key"
+            android:title="@string/fueltype_settings"
+            android:entries="@array/pref_fueltypes"
+        	android:entryValues="@array/pref_fueltypes_values"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>

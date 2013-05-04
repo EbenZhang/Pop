@@ -14,7 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 
-public class DiscountSettings {
+public class AppSettings {
 	private static final String HAS_DISCOUNT_SETTINGS = "key.has.discount.settings";
 	private final Context m_context;
 	public int m_colesDiscount = 8;
@@ -22,12 +22,12 @@ public class DiscountSettings {
 	SharedPreferences m_settings = null;
 	private AlertDialog m_discountSettingsDlg;
 
-	public DiscountSettings(Context context) {
+	public AppSettings(Context context) {
 		m_context = context;
 		m_settings = PreferenceManager.getDefaultSharedPreferences(m_context);
 	}
 	
-	public void LoadSettings(final ICallable<Object, Object> callable) {
+	public void LoadDiscountSettings(final ICallable<Object, Object> callable) {
 		boolean hasDiscountSettings = m_settings.getBoolean(
 				HAS_DISCOUNT_SETTINGS, false);
 		if (hasDiscountSettings) {
@@ -91,5 +91,15 @@ public class DiscountSettings {
 		editor.commit();
 
 		callable.Call(null);
+	}
+	
+	public boolean IncludeSurroundings()
+	{
+		return m_settings.getBoolean(m_context.getString(R.string.surrounding_suburbs_settings_key), true);
+	}
+
+	public int GetFuelType() {
+		String fuelType = m_settings.getString(m_context.getString(R.string.fueltype_settings_key), "1");
+		return Integer.parseInt(fuelType);
 	}
 }

@@ -10,4 +10,7 @@
         android:fragment="com.ezhang.pop.SettingsActivity$SuburbsPreferenceFragment"
         android:title="@string/suburb_settings" />
 
+    <header
+        android:fragment="com.ezhang.pop.SettingsActivity$FueltypePreferenceFragment"
+        android:title="@string/suburb_settings" />
 </preference-headers>

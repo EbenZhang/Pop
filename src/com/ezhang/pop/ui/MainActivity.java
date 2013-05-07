@@ -145,7 +145,6 @@ public class MainActivity extends Activity implements Observer {
 			if (!m_networkAlertDlg.isShowing()) {
 				m_networkAlertDlg.show();
 			}
-			return;
 		}
 
 		boolean isGPSEnabled = m_locationManager
@@ -162,7 +161,6 @@ public class MainActivity extends Activity implements Observer {
 			if (!m_locationAccessDlg.isShowing()) {
 				m_locationAccessDlg.show();
 			}
-			return;
 		}
 
 		if (m_fuelStateMachine == null) {
@@ -296,10 +294,17 @@ public class MainActivity extends Activity implements Observer {
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Timeout) {
 			if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
-				m_statusText.setText("Unable To Get Location");
+				m_statusText
+						.setText("Unable to get location. Probably because location access is disabled.");
 				HideCurrentAddress();
+			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
+				m_statusText
+						.setText("Unable to get suburb. Probably because network is disabled.");
+			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.FuelInfoEvent) {
+				m_statusText
+						.setText("Unable to get fuel info. Probably because network is disabled.");
 			}
-			
+
 			this.SwitchToStopWaiting();
 			m_statusText.setVisibility(View.VISIBLE);
 		}

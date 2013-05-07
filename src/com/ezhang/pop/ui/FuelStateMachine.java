@@ -178,7 +178,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.GeoLocationRecieved,
 				EmState.Timeout, EmEvent.Timeout, new EventAction() {
 					public void PerformAction(Bundle param) {
-						m_timeoutEvent = EmEvent.SuburbEvent;
+						m_timeoutEvent = EmEvent.GeoLocationEvent;
 						Notify();
 					}
 				});

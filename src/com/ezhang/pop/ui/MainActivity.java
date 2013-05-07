@@ -93,7 +93,9 @@ public class MainActivity extends Activity implements Observer {
 	}
 
 	public void OnRefreshClicked(View v) {
-		this.m_fuelStateMachine.Refresh();
+		if (this.m_fuelStateMachine != null) {
+			this.m_fuelStateMachine.Refresh();
+		}
 	}
 
 	public void OnSettingsClicked(View v) {
@@ -295,8 +297,9 @@ public class MainActivity extends Activity implements Observer {
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Timeout) {
 			if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
 				m_statusText.setText("Unable To Get Location");
+				HideCurrentAddress();
 			}
-			HideCurrentAddress();
+			
 			this.SwitchToStopWaiting();
 			m_statusText.setVisibility(View.VISIBLE);
 		}

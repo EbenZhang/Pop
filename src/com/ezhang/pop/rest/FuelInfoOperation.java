@@ -25,7 +25,7 @@ public class FuelInfoOperation implements Operation {
 	@Override
 	public Bundle execute(Context context, Request request)
 			throws ConnectionException, DataException {
-		String suburb = request.getString(SUBURB);
+		String suburb = request.getString(SUBURB).replace(' ', '+');
 		boolean includeSurrounding = request.getBoolean(INCLUDE_SURROUNDING);
 		String includeSurroundingString = includeSurrounding? "yes":"no";
 		int fuelType = request.getInt(FUEL_TYPE);

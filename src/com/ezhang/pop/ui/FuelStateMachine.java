@@ -7,7 +7,6 @@ import java.util.Observable;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,6 +14,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
 import com.ezhang.pop.model.DestinationList;
@@ -77,7 +77,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
 		InitStateMachineTransitions();
 
-		m_provider = GetBestProvider();
+		m_provider = LocationService.GetBestProvider(m_locationManager);
 		if (m_provider != null) {
 			m_locationManager.requestLocationUpdates(m_provider, 60 * 1000L,
 					20.0f, this.m_locationListener);
@@ -411,18 +411,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		} else {
 			// TODO: Still waiting location data.
 		}
-	}
-
-	private String GetBestProvider() {
-		Criteria criteria = new Criteria();
-		criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-		criteria.setAltitudeRequired(false);
-		criteria.setBearingRequired(false);
-		criteria.setCostAllowed(true);
-		criteria.setPowerRequirement(Criteria.POWER_LOW);
-
-		String provider = m_locationManager.getBestProvider(criteria, true);
-		return provider;
 	}
 
 	private final LocationListener m_locationListener = new LocationListener() {

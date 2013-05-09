@@ -7,6 +7,7 @@ import java.util.Observer;
 
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
+import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.rest.PopRequestManager;
@@ -162,6 +163,15 @@ public class MainActivity extends Activity implements Observer {
 			if (!m_locationAccessDlg.isShowing()) {
 				m_locationAccessDlg.show();
 			}
+		}
+
+		String provider = LocationService.GetBestProvider(m_locationManager);
+
+		if (provider == null) {
+			if (!m_locationAccessDlg.isShowing()) {
+				m_locationAccessDlg.show();
+			}
+			return;
 		}
 
 		if (m_fuelStateMachine == null) {

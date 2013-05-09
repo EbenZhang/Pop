@@ -264,9 +264,15 @@ public class MainActivity extends Activity implements Observer {
 			this.m_fuelInfoList
 					.addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
 			Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
-			m_statusText.setText("Completed");
 			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
 			SwitchToStopWaiting();
+
+			if (this.m_fuelInfoList.size() != 0) {
+				m_statusText.setText("Completed");
+			} else {
+				m_statusText.setText("Unfortunately, no fuel info was found");
+				m_statusText.setVisibility(View.VISIBLE);
+			}
 		}
 		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbRecieved) {
 			m_statusText.setText("Suburb Recieved: "
@@ -289,6 +295,8 @@ public class MainActivity extends Activity implements Observer {
 		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoRecieved) {
 			m_statusText.setText("Fuel Price Info Recieved");
 			SwitchToWaitingStatus();
+			this.m_fuelInfoList.clear();
+			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
@@ -349,19 +357,19 @@ public class MainActivity extends Activity implements Observer {
 		shareIntent.putExtra(Intent.EXTRA_TEXT, content);
 		startActivity(shareIntent);
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-	    // Handle item selection
-	    switch (item.getItemId()) {
-	        case R.id.action_settings:
-	        	OnSettingsClicked(null);
-	            return true;
-	        case R.id.share_with_friend_menu:
-	        	this.OnShareWithFriendClicked(null);
-	        	return true;
-	        default:
-	            return super.onOptionsItemSelected(item);
-	    }
+		// Handle item selection
+		switch (item.getItemId()) {
+		case R.id.action_settings:
+			OnSettingsClicked(null);
+			return true;
+		case R.id.share_with_friend_menu:
+			this.OnShareWithFriendClicked(null);
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
 	}
 }

@@ -203,7 +203,11 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					public void PerformAction(Bundle param) {
 						m_fuelInfoList = param
 								.getParcelableArrayList(PopRequestFactory.BUNDLE_FUEL_DATA);
-						RequestDistanceMatrix(m_fuelInfoList);
+						if (m_fuelInfoList.size() != 0) {
+							RequestDistanceMatrix(m_fuelInfoList);
+						} else {
+							m_stateMachine.SetState(EmState.DistanceRecieved);
+						}
 						Notify();
 					}
 				});

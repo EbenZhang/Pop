@@ -2,12 +2,22 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/voucher_description"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+    </TextView>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center">
+        android:layout_gravity="center" >
 
         <TextView
             android:layout_width="136dp"
@@ -20,19 +30,18 @@
             android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
-            android:selectAllOnFocus="true"
             android:gravity="right"
             android:inputType="number"
+            android:selectAllOnFocus="true"
             android:text="@string/default_discount" />
-        
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/discount_unit" >
         </TextView>
-
     </LinearLayout>
-    
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -49,16 +58,16 @@
             android:layout_width="45dp"
             android:layout_height="wrap_content"
             android:ems="3"
+            android:gravity="right"
+            android:inputType="number"
             android:selectAllOnFocus="true"
-            android:inputType="number" 
-            android:text="@string/default_discount"
-            android:gravity="right"/>
-        
+            android:text="@string/default_discount" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/discount_unit" >
         </TextView>
-
     </LinearLayout>
+
 </LinearLayout>

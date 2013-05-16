@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Observable;
+import java.util.Observer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -15,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 
 import com.ezhang.pop.core.LocationService;
+import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
 import com.ezhang.pop.model.DestinationList;
@@ -67,26 +69,45 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	TimerTask m_timerTask = null;
 	Handler m_timeoutHandler = new TimerHandler(this);
 	AppSettings m_settings = null;
+	boolean m_enableGPS = true;
 
 	public FuelStateMachine(PopRequestManager reqManager,
-			LocationManager locationManager, AppSettings settings) {
-
+			LocationManager locationManager, AppSettings settings,
+			boolean useGPSAsLocation) {
 		m_restReqManager = reqManager;
 		m_locationManager = locationManager;
 		m_settings = settings;
 
 		InitStateMachineTransitions();
 
-		m_provider = LocationService.GetBestProvider(m_locationManager);
-		if (m_provider != null) {
-			m_locationManager.requestLocationUpdates(m_provider, 60 * 1000L,
-					20.0f, this.m_locationListener);
-		}
-
-		this.m_location = this.m_locationManager
-				.getLastKnownLocation(m_provider);
+		m_enableGPS = useGPSAsLocation;
+		ToggleGPS(useGPSAsLocation);
 
 		Refresh();
+	}
+
+	public void ToggleGPS(boolean toggleOn) {
+		if (toggleOn) {
+			m_provider = LocationService.GetBestProvider(m_locationManager);
+			if (m_provider != null) {
+				m_locationManager.requestLocationUpdates(m_provider,
+						60 * 1000L, 20.0f, this.m_locationListener);
+			}
+
+			this.m_location = this.m_locationManager
+					.getLastKnownLocation(m_provider);
+		} else {
+			m_provider = null;
+			m_locationManager.removeUpdates(this.m_locationListener);
+		}
+		m_enableGPS = toggleOn;
+
+		if (!m_enableGPS) {
+			m_address = this.m_settings.GetHistoryLocations().get(0);
+			m_suburb = LocationSpliter.Split(m_address).second;
+			this.m_stateMachine.SetState(EmState.SuburbRecieved);
+			this.Notify();
+		}
 	}
 
 	public void Refresh() {
@@ -167,11 +188,12 @@ public class FuelStateMachine extends Observable implements RequestListener {
 						if (m_suburb == "") {
 							m_stateMachine
 									.SetState(EmState.GeoLocationRecieved);
+							Notify();
 							RequestSuburb();
 							return;
 						}
-						RequestFuelInfo();
 						Notify();
+						RequestFuelInfo();
 					}
 				});
 
@@ -189,11 +211,12 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					public void PerformAction(Bundle param) {
 						if (m_suburb == null) {
 							RequestSuburb();
+							Notify();
 						} else {
 							m_stateMachine.SetState(EmState.SuburbRecieved);
+							Notify();
 							RequestFuelInfo();
 						}
-						Notify();
 					}
 				});
 
@@ -304,15 +327,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			if (item.voucherType != null && item.voucherType != "") {
 				if (item.voucherType == "wws") {
 					if (m_settings.m_wwsDiscount != item.voucher) {
-						item.price += item.voucher
-								- m_settings.m_wwsDiscount;
+						item.price += item.voucher - m_settings.m_wwsDiscount;
 						item.voucher = m_settings.m_wwsDiscount;
 					}
 				}
 				if (item.voucherType == "coles") {
 					if (m_settings.m_colesDiscount != item.voucher) {
-						item.price += item.voucher
-								- m_settings.m_colesDiscount;
+						item.price += item.voucher - m_settings.m_colesDiscount;
 						item.voucher = m_settings.m_colesDiscount;
 					}
 				}
@@ -397,28 +418,37 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
-		if (m_location == null) {
-			m_location = this.m_locationManager
-					.getLastKnownLocation(m_provider);
+		DestinationList dests = new DestinationList();
+		for (FuelInfo item : fuelInfoList) {
+			dests.AddDestination(item.latitude, item.longitude);
 		}
-		if (m_location != null) {
-			DestinationList dests = new DestinationList();
-			for (FuelInfo item : fuelInfoList) {
-				dests.AddDestination(item.latitude, item.longitude);
-			}
-			String src = String.format("%s,%s", this.m_location.getLatitude(),
+		
+		String src = "";
+		
+		if(this.m_enableGPS){
+            if (m_location == null) {
+                m_location = this.m_locationManager
+                        .getLastKnownLocation(m_provider);
+            }
+			if (m_location != null){			
+				src = String.format("%s,%s", this.m_location.getLatitude(),
 					this.m_location.getLongitude());
-			StartTimer(5000);
-			Request req = PopRequestFactory
-					.GetDistanceMatrixRequest(src, dests);
-			m_restReqManager.execute(req, this);
-		} else {
-			// TODO: Still waiting location data.
+			}
+		}else{
+			src = this.m_address.replace(' ', '+');
 		}
+		StartTimer(5000);
+		Request req = PopRequestFactory
+				.GetDistanceMatrixRequest(src, dests);
+		m_restReqManager.execute(req, this);			
 	}
 
 	private final LocationListener m_locationListener = new LocationListener() {
-		public void onLocationChanged(Location location) { // µ±×ø±ê¸Ä±äÊ±´¥·¢´Ëº¯Êý£¬Èç¹ûProvider´«½øÏàÍ¬µÄ×ø±ê£¬Ëü¾Í²»»á±»´¥·¢
+		public void onLocationChanged(Location location) {
+			if (!m_enableGPS) {
+				return;
+			}
+
 			// log it when the location changes
 			if (location != null) {
 				if (m_location == null || !location.equals(m_location)) {
@@ -432,15 +462,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		}
 
 		public void onProviderDisabled(String provider) {
-			// Provider±»disableÊ±´¥·¢´Ëº¯Êý£¬±ÈÈçGPS±»¹Ø±Õ
+			// Providerï¿½ï¿½disableÊ±ï¿½ï¿½ï¿½ï¿½ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½GPSï¿½ï¿½ï¿½Ø±ï¿½
 		}
 
 		public void onProviderEnabled(String provider) {
-			// Provider±»enableÊ±´¥·¢´Ëº¯Êý£¬±ÈÈçGPS±»´ò¿ª
+			// Providerï¿½ï¿½enableÊ±ï¿½ï¿½ï¿½ï¿½ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½GPSï¿½ï¿½ï¿½ï¿½
 		}
 
 		public void onStatusChanged(String provider, int status, Bundle extras) {
-			// ProviderµÄ×ªÌ¬ÔÚ¿ÉÓÃ¡¢ÔÝÊ±²»¿ÉÓÃºÍÎÞ·þÎñÈý¸ö×´Ì¬Ö±½ÓÇÐ»»Ê±´¥·¢´Ëº¯Êý
+			// Providerï¿½ï¿½×ªÌ¬ï¿½Ú¿ï¿½ï¿½Ã¡ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ãºï¿½ï¿½Þ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬Ö±ï¿½ï¿½ï¿½Ð»ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ëºï¿½ï¿½ï¿½
 		}
 	};
 
@@ -462,12 +492,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		}
 		if (m_suburb == null) {
 			m_stateMachine.SetState(EmState.GeoLocationRecieved);
+			Notify();
 			RequestSuburb();
 		} else {
 			m_stateMachine.SetState(EmState.SuburbRecieved);
+			Notify();
 			RequestFuelInfo();
 		}
-		Notify();
 	}
 
 	public void ReCalculatePrice() {

@@ -43,6 +43,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="android.preference.PreferenceActivity" />
         </activity>
+        <activity
+            android:name="com.ezhang.pop.ui.CustomLocationActivity"
+            android:label="@string/title_activity_custom_location" >
+        </activity>
     </application>
 
 </manifest>

@@ -2,6 +2,7 @@ package com.ezhang.pop.ui;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -105,6 +106,11 @@ public class MainActivity extends Activity implements Observer {
 		this.startActivity(intent);
 	}
 
+	public void OnChangeLocationClicked(View v) {
+		Intent intent = new Intent(this, CustomLocationActivity.class);
+		this.startActivity(intent);
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -149,36 +155,43 @@ public class MainActivity extends Activity implements Observer {
 			}
 		}
 
-		boolean isGPSEnabled = m_locationManager
-				.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		boolean isNetworkLocationEnabled = m_locationManager
-				.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+		boolean useGPS = this.m_settings.UseGPSAsLocation();
+		if (useGPS) {
 
-		boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
-		isNetworkLocationEnabled |= isOnSimulator; // network location is not
-													// supported by simulator.
+			boolean isGPSEnabled = m_locationManager
+					.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			boolean isNetworkLocationEnabled = m_locationManager
+					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-		if (!isGPSEnabled || !isNetworkLocationEnabled) {
-			CreateLocationAccessAlertDlg();
-			if (!m_locationAccessDlg.isShowing()) {
-				m_locationAccessDlg.show();
+			boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
+			isNetworkLocationEnabled |= isOnSimulator; // network location is
+														// not
+														// supported by
+														// simulator.
+
+			if (!isGPSEnabled || !isNetworkLocationEnabled) {
+				CreateLocationAccessAlertDlg();
+				if (!m_locationAccessDlg.isShowing()) {
+					m_locationAccessDlg.show();
+				}
 			}
-		}
+			
+			String provider = LocationService.GetBestProvider(m_locationManager);
 
-		String provider = LocationService.GetBestProvider(m_locationManager);
-
-		if (provider == null) {
-			if (!m_locationAccessDlg.isShowing()) {
-				m_locationAccessDlg.show();
+			if (provider == null) {
+				if (!m_locationAccessDlg.isShowing()) {
+					m_locationAccessDlg.show();
+				}
+				return;
 			}
-			return;
 		}
 
 		if (m_fuelStateMachine == null) {
 			m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-					this.m_locationManager, this.m_settings);
+					this.m_locationManager, this.m_settings, useGPS);
 			m_fuelStateMachine.addObserver(this);
 		} else {
+			m_fuelStateMachine.ToggleGPS(useGPS);
 			m_fuelStateMachine.Refresh();
 		}
 		m_statusText.setText("Waiting For Location Information");
@@ -260,6 +273,7 @@ public class MainActivity extends Activity implements Observer {
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceRecieved) {
+			ShowCurrentAddr();
 			this.m_fuelInfoList.clear();
 			this.m_fuelInfoList
 					.addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
@@ -277,26 +291,18 @@ public class MainActivity extends Activity implements Observer {
 		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbRecieved) {
 			m_statusText.setText("Suburb Recieved: "
 					+ this.m_fuelStateMachine.m_suburb);
-			if (this.m_fuelStateMachine.m_suburb != null
-					&& this.m_fuelStateMachine.m_suburb != "") {
-				int indexOfSuburb = this.m_fuelStateMachine.m_address
-						.indexOf(this.m_fuelStateMachine.m_suburb);
-
-				String addrWithoutSuburb = this.m_fuelStateMachine.m_address
-						.substring(0, indexOfSuburb);
-				TextView v = ((TextView) this.findViewById(R.id.curAddressText));
-				v.setText("You're at:" + addrWithoutSuburb
-						+ this.m_fuelStateMachine.m_suburb);
-				v.setVisibility(View.VISIBLE);
-			}
+			ShowCurrentAddr();
+			this.m_fuelInfoList.clear();
 			SwitchToWaitingStatus();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoRecieved) {
 			m_statusText.setText("Fuel Price Info Recieved");
+			ShowCurrentAddr();
 			SwitchToWaitingStatus();
 			this.m_fuelInfoList.clear();
 			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
+			
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
@@ -329,9 +335,28 @@ public class MainActivity extends Activity implements Observer {
 		}
 	}
 
+	private void ShowCurrentAddr() {
+		if (this.m_fuelStateMachine.m_suburb != null
+				&& this.m_fuelStateMachine.m_suburb != "") {
+			int indexOfSuburb = this.m_fuelStateMachine.m_address
+					.indexOf(this.m_fuelStateMachine.m_suburb);
+
+			String addrWithoutSuburb = this.m_fuelStateMachine.m_address
+					.substring(0, indexOfSuburb);
+			TextView v = ((TextView) this.findViewById(R.id.curAddressText));
+			String addrText = String.format(Locale.ENGLISH,
+					"You're at:%s%s.Touch here to change if incorrect.",
+					addrWithoutSuburb, this.m_fuelStateMachine.m_suburb);
+			v.setText(addrText);
+
+			View curAddr = this.findViewById(R.id.layoutCurAddr);
+			curAddr.setVisibility(View.VISIBLE);
+		}
+	}
+
 	private void HideCurrentAddress() {
-		TextView v = ((TextView) this.findViewById(R.id.curAddressText));
-		v.setVisibility(View.GONE);
+		View curAddr = this.findViewById(R.id.layoutCurAddr);
+		curAddr.setVisibility(View.GONE);
 	}
 
 	private void SwitchToStopWaiting() {

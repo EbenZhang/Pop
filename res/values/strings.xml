@@ -1,7 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
     <string name="app_name">WaFuelFuel</string>
-    <string name="action_settings">Settings</string>    
+    <string name="action_settings">Settings</string>
     <string name="share_with_friends">share with friends</string>
     <string name="voucher_description">You\'ll get rewarded when you fill up if you have any voucher.NB: you can change the value in settings later run.</string>
+    <string name="title_activity_custom_location">Customise Your Location</string>
+    <string name="choice_custom_location">Add new location</string>
+    <string name="change">Change</string>
+    <string name="choice_gps_location">Use GPS to detect my location</string>
+    <string name="address">address</string>
+    <string name="suburb">suburb</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

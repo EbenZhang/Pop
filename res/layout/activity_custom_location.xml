@@ -1,0 +1,95 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:layout_gravity="center_vertical"
+              android:orientation="vertical"
+              android:paddingBottom="@dimen/activity_vertical_margin"
+              android:paddingLeft="@dimen/activity_horizontal_margin"
+              android:paddingRight="@dimen/activity_horizontal_margin"
+              android:paddingTop="@dimen/activity_vertical_margin"
+              tools:context=".CustomLocationActivity">
+<LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+    <RadioGroup
+            android:id="@+id/locationRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusableInTouchMode="true">
+
+        <RadioButton
+                android:id="@+id/radioBtnGPSLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/choice_gps_location"/>
+
+        <RadioButton
+                android:id="@+id/radioBtnCustomLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/choice_custom_location"/>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <TextView
+                    android:id="@+id/textView1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/address"/>
+
+            <EditText
+                    android:id="@+id/streetAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPostalAddress">
+            </EditText>
+        </LinearLayout>
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+            <TextView
+                    android:id="@+id/textViewSuburb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/suburb"/>
+
+            <Spinner
+                    android:id="@+id/suburbAddress"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"/>
+        </LinearLayout>
+    </RadioGroup>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+        <Button
+                android:id="@+id/btnOK"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="OnOKClicked"
+                android:text="@string/ok"/>
+
+        <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:onClick="OnCancelClicked"
+                android:text="@string/cancel"/>
+    </LinearLayout>
+</LinearLayout>
+</ScrollView>

@@ -5,6 +5,8 @@ gen/
 .iws
 workspace.xml
 tasks.xml
+proguard_logs/
+*.apk
 # Package Files #
 *.jar
 *.war

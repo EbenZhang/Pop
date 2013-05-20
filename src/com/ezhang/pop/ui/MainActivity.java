@@ -146,21 +146,22 @@ public class MainActivity extends Activity implements Observer {
 	}
 
     private void OnLocationTypeSelected() {
-        boolean useGPS = this.m_settings.UseGPSAsLocation();
+        boolean useGPS = m_settings.UseGPSAsLocation();
         if (useGPS) {
-if (!PromptEnableLocationService()) return;
-}
+            if (!PromptEnableLocationService()) return;
+        }
+
+        ShowStatusText("Waiting For Location Information");
+        SwitchToWaitingStatus();
 
         if (m_fuelStateMachine == null) {
-            m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-                    this.m_locationManager, this.m_settings, useGPS);
+            m_fuelStateMachine = new FuelStateMachine(m_restReqManager,
+                    m_locationManager, m_settings);
             m_fuelStateMachine.addObserver(this);
         } else {
             m_fuelStateMachine.ToggleGPS(useGPS);
             m_fuelStateMachine.Refresh();
         }
-        ShowStatusText("Waiting For Location Information");
-        SwitchToWaitingStatus();
     }
 
     private void PromptEnableNetwork() {
@@ -258,7 +259,7 @@ if (!PromptEnableLocationService()) return;
 
 		// Setting Dialog Message
 		alertDialog
-				.setMessage("Location Access is not enabled. Press go to the settings menu and enbale both \n * GPS satellites\n * Wi-Fi & mobile network");
+				.setMessage("Location Access is disabled. Press go to the settings menu and enable both \n * GPS satellites\n * Wi-Fi & mobile network");
 
 		// On pressing Settings button
 		alertDialog.setPositiveButton("Go",
@@ -316,7 +317,6 @@ if (!PromptEnableLocationService()) return;
 	@Override
 	protected void onPause() {
 		super.onPause();
-		// TODO
 	}
 
 	@Override
@@ -442,7 +442,7 @@ if (!PromptEnableLocationService()) return;
 
     private void ShowStatusText(String text) {
         if(m_toast == null){
-            m_toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+            m_toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
         }
         else{
             m_toast.setText(text);

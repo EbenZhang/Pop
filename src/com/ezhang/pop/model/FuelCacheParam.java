@@ -20,7 +20,7 @@ public class FuelCacheParam {
         hit &= m_cachedFuelType == settings.GetFuelType();
         hit &= settings.m_wwsDiscount == m_wwsVoucher;
         hit &= settings.m_colesDiscount == m_colesVoucher;
-        hit &= m_cachedSuburb == suburb;
+        hit &= suburb.equals(m_cachedSuburb);
         return hit;
     }
 }

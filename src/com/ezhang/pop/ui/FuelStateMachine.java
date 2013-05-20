@@ -37,7 +37,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	enum EmState {
-		Start, GeoLocationReceived, SuburbReceived, FuelInfoReceived, DistanceReceived, Timeout
+		Invalid, Start, GeoLocationReceived, SuburbReceived, FuelInfoReceived, DistanceReceived, Timeout
 	}
 
 	enum EmEvent {
@@ -59,22 +59,23 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	TimerTask m_timerTask = null;
 	Handler m_timeoutHandler = new TimerHandler(this);
 	AppSettings m_settings = null;
-	boolean m_enableGPS = true;
 
     FuelInfoCache m_fuelInfoCache = new FuelInfoCache();
     FuelDistanceInfoCache m_fuelDistanceCached = new FuelDistanceInfoCache();
 
+    EmState m_lastState = EmState.Invalid;
+    boolean m_fuelInfoChanged = false;
+    boolean m_fuelDistanceInfoChanged = false;
+
 	public FuelStateMachine(PopRequestManager reqManager,
-			LocationManager locationManager, AppSettings settings,
-			boolean useGPSAsLocation) {
+			LocationManager locationManager, AppSettings settings) {
 		m_restReqManager = reqManager;
 		m_locationManager = locationManager;
 		m_settings = settings;
 
 		InitStateMachineTransitions();
 
-		m_enableGPS = useGPSAsLocation;
-		ToggleGPS(useGPSAsLocation);
+		ToggleGPS(settings.UseGPSAsLocation());
 
 		Refresh();
 	}
@@ -93,9 +94,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			m_provider = null;
 			m_locationManager.removeUpdates(this.m_locationListener);
 		}
-		m_enableGPS = toggleOn;
 
-		if (!m_enableGPS) {
+		if (!m_settings.UseGPSAsLocation()) {
 			m_address = this.m_settings.GetHistoryLocations().get(0);
 			m_suburb = LocationSpliter.Split(m_address).second;
 			this.m_stateMachine.SetState(EmState.SuburbReceived);
@@ -256,7 +256,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 						DistanceMatrix distanceMatrix = param
 								.getParcelable(PopRequestFactory.BUNDLE_DISTANCE_MATRIX_DATA);
 						OnDistanceMatrixReceived(distanceMatrix);
-						Notify();
 					}
 				});
 		m_stateMachine.AddTransition(EmState.FuelInfoReceived,
@@ -311,7 +310,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
     private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList) {
-        m_fuelInfoList = fuelInfoList;
+        UpdateFuelInfoList(fuelInfoList);
         if (m_fuelInfoList.size() != 0) {
             RequestDistanceMatrix(m_fuelInfoList);
         } else {
@@ -320,6 +319,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
         m_fuelInfoCache.CacheFuelInfo(m_fuelInfoList);
         Notify();
+    }
+
+    private void UpdateFuelInfoList(List<FuelInfo> fuelInfoList) {
+        if(m_fuelInfoList != fuelInfoList){
+            m_fuelInfoList = fuelInfoList;
+            m_fuelInfoChanged = true;
+        }
     }
 
     private void OnRecalculatePrice() {
@@ -343,6 +349,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
 	private void OnDistanceMatrixReceived(DistanceMatrix distanceMatrix) {
 		m_fuelDistanceItems.clear();
+        m_fuelDistanceInfoChanged = true;
 		int i = 0;
 		for (DistanceMatrixItem distanceItem : distanceMatrix
 				.GetDistanceItems()) {
@@ -415,7 +422,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
         if(m_fuelInfoCache.HitCache(m_settings, m_suburb)){
             m_stateMachine.SetState(EmState.FuelInfoReceived);
             OnFuelInfoReceived(m_fuelInfoCache.m_cachedFuelInfo);
-            Notify();
             return;
         }
 		StartTimer(5000);
@@ -428,7 +434,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
         if (m_fuelDistanceCached.HitCache(m_settings, m_suburb, m_address)){
             m_stateMachine.SetState(EmState.DistanceReceived);
-            Notify();
             return;
         }
 
@@ -439,7 +444,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		
 		String src = "";
 		
-		if(this.m_enableGPS){
+		if(m_settings.UseGPSAsLocation()){
             if (m_location == null) {
                 m_location = this.m_locationManager
                         .getLastKnownLocation(m_provider);
@@ -455,12 +460,12 @@ public class FuelStateMachine extends Observable implements RequestListener {
         m_fuelDistanceCached.SetCacheContext(m_settings, m_suburb, m_address);
 		Request req = PopRequestFactory
 				.GetDistanceMatrixRequest(src, destinations);
-		m_restReqManager.execute(req, this);			
-	}
+		m_restReqManager.execute(req, this);
+    }
 
 	private final LocationListener m_locationListener = new LocationListener() {
 		public void onLocationChanged(Location location) {
-			if (!m_enableGPS) {
+			if (!m_settings.UseGPSAsLocation()) {
 				return;
 			}
 
@@ -469,7 +474,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				if (m_location == null || !location.equals(m_location)) {
 					m_location = location;
 					m_suburb = null;
-					m_fuelInfoList = null;
+					UpdateFuelInfoList(null);
 					m_fuelDistanceItems.clear();
 					m_stateMachine.HandleEvent(EmEvent.GeoLocationEvent, null);
 				}
@@ -495,12 +500,19 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void Notify() {
-		setChanged();
-		notifyObservers();
+		if(m_lastState != m_stateMachine.GetState() ||
+                m_fuelDistanceInfoChanged||
+                m_fuelInfoChanged){
+            m_fuelDistanceInfoChanged = false;
+            m_fuelInfoChanged = false;
+            m_lastState = m_stateMachine.GetState();
+            setChanged();
+            notifyObservers();
+        }
 	}
 
 	private void Start() {
-		if (m_location == null) {
+		if (m_settings.UseGPSAsLocation() && m_location == null) {
 			StartTimer(3 * 60 * 1000);
 			Notify();
 			return;

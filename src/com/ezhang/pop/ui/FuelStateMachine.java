@@ -370,7 +370,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			}
 			item.latitude = fuelInfo.latitude;
 			item.longitude = fuelInfo.longitude;
-			item.destinationAddr = fuelInfo.address;
+			item.destinationAddr = fuelInfo.GetAddress();
 			m_fuelDistanceItems.add(item);
 			i++;
 		}

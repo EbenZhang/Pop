@@ -39,14 +39,16 @@ public class FuelInfoXmlHandler extends DefaultHandler {
 		} else if (localName.equals("brand")) {
 			item.brand = buffer.toString().trim();
 		} else if (localName.equals("address")) {
-			item.address = buffer.toString().trim();
+			item.SetAddressWithoutSuburb(buffer.toString().trim());
 		} else if (localName.equals("latitude")) {
 			item.latitude = buffer.toString().trim();
 		} else if (localName.equals("longitude")) {
 			item.longitude = buffer.toString().trim();
 		} else if (localName.equals("trading-name")) {
 			item.tradingName = buffer.toString().trim();
-		}
+		}else if (localName.equals("location")) {
+            item.SetSuburb(buffer.toString().trim());
+        }
 		if (cleanBuffer)
 			buffer.setLength(0);
 		super.endElement(uri, localName, qName);

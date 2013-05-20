@@ -11,8 +11,7 @@ class NavigonApp extends NavigationApp {
 		intent = _intent;
 	}
 
-	public void CallNavigateApp(Activity activity, String srcLatitude,
-			String srcLongitude, String destLatitudue, String destLongitude) {
+	public void CallNavigateApp(Activity activity, String destLatitudue, String destLongitude) {
 		String INTENT_EXTRA_KEY_LATITUDE = "latitude";
 		String INTENT_EXTRA_KEY_LONGITUDE = "longitude";
 

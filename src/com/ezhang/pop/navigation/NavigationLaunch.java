@@ -13,25 +13,19 @@ import android.content.pm.PackageManager;
 public class NavigationLaunch implements OnClickListener {
 	List<NavigationApp> m_apps;
 	Activity m_activity;
-	String m_srcLatitude;
-	String m_srcLongitude;
 	String m_dstLatitude;
 	String m_dstLongitude;
 
-	public NavigationLaunch(Activity activity, String srcLatitude,
-			String srcLongitude, String dstLatitude, String dstLongitude) {
+	public NavigationLaunch(Activity activity, String dstLatitude, String dstLongitude) {
 		m_activity = activity;
 		m_apps = GetNavigationApps(activity);
-		m_srcLatitude = srcLatitude;
-		m_srcLongitude = srcLongitude;
 		m_dstLatitude = dstLatitude;
 		m_dstLongitude = dstLongitude;
 	}
 
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
-		this.m_apps.get(which).CallNavigateApp(this.m_activity, m_srcLatitude,
-				m_srcLongitude, m_dstLatitude, m_dstLongitude);
+		this.m_apps.get(which).CallNavigateApp(this.m_activity, m_dstLatitude, m_dstLongitude);
 	}
 
 	public void Launch() {

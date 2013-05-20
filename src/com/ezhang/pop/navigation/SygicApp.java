@@ -13,8 +13,7 @@ public class SygicApp extends NavigationApp {
 		m_intent = intent;
 	}
 	@Override
-	public void CallNavigateApp(Activity activity, String srcLatitude,
-			String srcLongitude, String destLatitudue, String destLongitude) {
+	public void CallNavigateApp(Activity activity, String destLatitudue, String destLongitude) {
 		String str = String.format("http://com.sygic.aura/coordinate|%s|%s|drive", destLongitude, destLatitudue);
 		
 		Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(str));

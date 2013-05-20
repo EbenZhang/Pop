@@ -9,7 +9,6 @@ public abstract class NavigationApp {
 		desc = _desc;
 	}
 
-	public abstract void CallNavigateApp(Activity activity,
-			String srcLatitude, String srcLongitude, String destLatitudue,
+	public abstract void CallNavigateApp(Activity activity, String destLatitudue,
 			String destLongitude);
 }

@@ -9,8 +9,7 @@ class GoogleNavigationApp extends NavigationApp {
 		super("Google Maps");
 	}
 
-	public void CallNavigateApp(Activity activity, String srcLatitude,
-			String srcLongitude, String destLatitudue, String destLongitude) {
+	public void CallNavigateApp(Activity activity, String destLatitudue, String destLongitude) {
 		String uriString = String.format("geo:0,0?q=%s,%s", destLatitudue,
 				destLongitude);
 		Uri uri = Uri.parse(uriString);

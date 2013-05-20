@@ -78,23 +78,14 @@ public class MainActivity extends Activity implements Observer {
 			@Override
 			public void onItemClick(AdapterView<?> a, View v, int position,
 					long id) {
-				Object o = m_listView.getItemAtPosition(position);
-				FuelDistanceItem fullObject = (FuelDistanceItem) o;
-				if (m_fuelStateMachine != null
-						&& m_fuelStateMachine.m_location != null) {
-
-					NavigationLaunch launch = new NavigationLaunch(
-							MainActivity.this, String
-									.valueOf(m_fuelStateMachine.m_location
-											.getLatitude()), String
-									.valueOf(m_fuelStateMachine.m_location
-											.getLongitude()),
-							fullObject.latitude, fullObject.longitude);
-					launch.Launch();
-				}
-			}
-		});
-		m_settings = new AppSettings(this);
+                Object o = m_listView.getItemAtPosition(position);
+                FuelDistanceItem fullObject = (FuelDistanceItem) o;
+                NavigationLaunch launch = new NavigationLaunch(
+                        MainActivity.this, fullObject.latitude, fullObject.longitude);
+                launch.Launch();
+            }
+        });
+        m_settings = new AppSettings(this);
 	}
 
 	public void OnRefreshClicked(View v) {

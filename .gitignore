@@ -2,6 +2,9 @@
 out/
 bin/
 gen/
+.iws
+workspace.xml
+tasks.xml
 # Package Files #
 *.jar
 *.war

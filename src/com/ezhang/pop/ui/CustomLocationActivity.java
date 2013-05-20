@@ -7,6 +7,7 @@ import java.util.Locale;
 import android.widget.*;
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.LocationSpliter;
+import com.ezhang.pop.core.NotEmptyValidator;
 import com.ezhang.pop.settings.AppSettings;
 
 import android.os.Bundle;
@@ -130,18 +131,23 @@ public class CustomLocationActivity extends Activity {
 				.findViewById(R.id.locationRadioGroup);
 		int selectedID = group.getCheckedRadioButtonId();
 
-		boolean useGPS = selectedID == R.id.radioBtnGPSLocation;
-		
-		this.m_settings.UseGPSAsLocation(useGPS);
-
 		boolean addNewLocation = selectedID == R.id.radioBtnCustomLocation;
 		if (addNewLocation) {
             String suburb = ((Spinner) findViewById(R.id.suburbAddress)).getSelectedItem().toString();
-			String newLocation = GenerateNewLocationString(suburb);
+            EditText streetAddrEditText = (EditText) this.findViewById(R.id.streetAddress);
+            String streetAddr = streetAddrEditText.getText().toString();
+            boolean notEmpty = NotEmptyValidator.NotEmpty(this, streetAddr, "Please input your address.");
+            if(!notEmpty){
+                streetAddrEditText.requestFocus();
+                return;
+            }
+            String newLocation = GenerateNewLocationString(streetAddr, suburb);
 			AddNewLocation(newLocation);
             m_settings.SetLastSuburb(suburb);
 		}
 
+        boolean useGPS = selectedID == R.id.radioBtnGPSLocation;
+        this.m_settings.UseGPSAsLocation(useGPS);
 		if (!addNewLocation && !useGPS) {
 			ReorderHistoryLocations();
 		}
@@ -174,9 +180,7 @@ public class CustomLocationActivity extends Activity {
 		}
 	}
 
-	private String GenerateNewLocationString(String suburb) {
-		String streetAddr = ((EditText) this.findViewById(R.id.streetAddress))
-				.getText().toString();
+	private String GenerateNewLocationString(String streetAddr, String suburb) {
 		String newLocation = LocationSpliter.Combine(streetAddr, suburb);
 		return newLocation;
 	}

@@ -22,7 +22,8 @@ import android.widget.EditText;
 public class AppSettings {
     private static final String HAS_DISCOUNT_SETTINGS = "key.has.discount.settings";
     private static final String GPS_AS_LOCATION_TYPE = "com.ezhang.pop.location.type";
-    private static final String CUSTOME_LOCATION = "com.ezhang.pop.customlocations";
+    private static final String FIRST_RUN_OF_APPLICATION = "com.ezhang.pop.first.run";
+    private static final String CUSTOM_LOCATION = "com.ezhang.pop.customlocations";
     private static final String LAST_SUBURB = "com.ezhang.pop.last.suburb";
     private static final String LOCATION_SEP = "||";
 
@@ -31,10 +32,17 @@ public class AppSettings {
     public int m_wwsDiscount = 8;
     SharedPreferences m_settings = null;
     private AlertDialog m_discountSettingsDlg;
+    private boolean m_isFirstRun = false;
 
     public AppSettings(Context context) {
         m_context = context;
         m_settings = PreferenceManager.getDefaultSharedPreferences(m_context);
+        m_isFirstRun = m_settings.getBoolean(FIRST_RUN_OF_APPLICATION, true);
+        if (m_isFirstRun) {
+            Editor editor = m_settings.edit();
+            editor.putBoolean(FIRST_RUN_OF_APPLICATION, false);
+            editor.commit();
+        }
     }
 
     public void LoadDiscountSettings(final ICallable<Object, Object> callable) {
@@ -116,7 +124,7 @@ public class AppSettings {
     }
 
     public boolean UseGPSAsLocation() {
-        return m_settings.getBoolean(GPS_AS_LOCATION_TYPE, true);
+        return m_settings.getBoolean(GPS_AS_LOCATION_TYPE, false);
     }
 
     public void UseGPSAsLocation(boolean useGPS) {
@@ -126,7 +134,7 @@ public class AppSettings {
     }
 
     public List<String> GetHistoryLocations() {
-        String customLocations = m_settings.getString(CUSTOME_LOCATION, "");
+        String customLocations = m_settings.getString(CUSTOM_LOCATION, "");
         if (customLocations != "") {
             return new ArrayList<String>(Arrays.asList(customLocations
                     .split(java.util.regex.Pattern.quote(LOCATION_SEP))));
@@ -141,7 +149,7 @@ public class AppSettings {
                     locations.toArray(new String[locations.size()]),
                     LOCATION_SEP);
             Editor editor = m_settings.edit();
-            editor.putString(CUSTOME_LOCATION, jointLocations);
+            editor.putString(CUSTOM_LOCATION, jointLocations);
             editor.commit();
         }
     }
@@ -154,5 +162,9 @@ public class AppSettings {
         Editor editor = m_settings.edit();
         editor.putString(LAST_SUBURB, suburb);
         editor.commit();
+    }
+
+    public boolean IsFirstRun() {
+        return m_isFirstRun;
     }
 }

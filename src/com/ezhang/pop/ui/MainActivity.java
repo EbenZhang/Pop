@@ -53,6 +53,8 @@ public class MainActivity extends Activity implements Observer {
 	AppSettings m_settings = null;
 	AlertDialog m_networkAlertDlg = null;
 	AlertDialog m_locationAccessDlg = null;
+    AlertDialog m_gpsOrCustomLocationDlg = null;
+    boolean m_locationTypeSelected = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -142,74 +144,135 @@ public class MainActivity extends Activity implements Observer {
 			m_locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		}
 
-		ConnectivityManager nInfo = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo network = nInfo.getActiveNetworkInfo();
-		boolean hasNetwork = false;
-		if (network != null) {
-			hasNetwork = network.isConnectedOrConnecting();
-		}
-		if (!hasNetwork) {
-			CreateNetworkAlertDlg();
-			if (!m_networkAlertDlg.isShowing()) {
-				m_networkAlertDlg.show();
-			}
-		}
+        PromptEnableNetwork();
 
-		boolean useGPS = this.m_settings.UseGPSAsLocation();
-		if (useGPS) {
+        boolean isFirstRun = this.m_settings.IsFirstRun();
+        if(isFirstRun && !m_locationTypeSelected)
+        {
+            CreateGPSOrCustomLocationAlertDlg();
+            if(!m_gpsOrCustomLocationDlg.isShowing()){
+                m_gpsOrCustomLocationDlg.show();
+                return;
+            }
+        }
 
-			boolean isGPSEnabled = m_locationManager
-					.isProviderEnabled(LocationManager.GPS_PROVIDER);
-			boolean isNetworkLocationEnabled = m_locationManager
-					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-			boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
-			isNetworkLocationEnabled |= isOnSimulator; // network location is
-														// not
-														// supported by
-														// simulator.
-
-			if (!isGPSEnabled || !isNetworkLocationEnabled) {
-				CreateLocationAccessAlertDlg();
-				if (!m_locationAccessDlg.isShowing()) {
-					m_locationAccessDlg.show();
-				}
-			}
-			
-			String provider = LocationService.GetBestProvider(m_locationManager);
-
-			if (provider == null) {
-				if (!m_locationAccessDlg.isShowing()) {
-					m_locationAccessDlg.show();
-				}
-				return;
-			}
-		}
-
-		if (m_fuelStateMachine == null) {
-			m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
-					this.m_locationManager, this.m_settings, useGPS);
-			m_fuelStateMachine.addObserver(this);
-		} else {
-			m_fuelStateMachine.ToggleGPS(useGPS);
-			m_fuelStateMachine.Refresh();
-		}
-		m_statusText.setText("Waiting For Location Information");
-		SwitchToWaitingStatus();
+        OnLocationTypeSelected();
 	}
 
-	private void CreateLocationAccessAlertDlg() {
+    private void OnLocationTypeSelected() {
+        boolean useGPS = this.m_settings.UseGPSAsLocation();
+        if (useGPS) {
+if (!PromptEnableLocationService()) return;
+}
+
+        if (m_fuelStateMachine == null) {
+            m_fuelStateMachine = new FuelStateMachine(this.m_restReqManager,
+                    this.m_locationManager, this.m_settings, useGPS);
+            m_fuelStateMachine.addObserver(this);
+        } else {
+            m_fuelStateMachine.ToggleGPS(useGPS);
+            m_fuelStateMachine.Refresh();
+        }
+        m_statusText.setText("Waiting For Location Information");
+        SwitchToWaitingStatus();
+    }
+
+    private void PromptEnableNetwork() {
+        ConnectivityManager nInfo = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo network = nInfo.getActiveNetworkInfo();
+        boolean hasNetwork = false;
+        if (network != null) {
+            hasNetwork = network.isConnectedOrConnecting();
+        }
+        if (!hasNetwork) {
+            CreateNetworkAlertDlg();
+            if (!m_networkAlertDlg.isShowing()) {
+                m_networkAlertDlg.show();
+            }
+        }
+    }
+
+    private boolean PromptEnableLocationService() {
+        boolean isGPSEnabled = m_locationManager
+                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+        boolean isNetworkLocationEnabled = m_locationManager
+                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+        boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
+        isNetworkLocationEnabled |= isOnSimulator; // network location is
+        // not
+        // supported by
+        // simulator.
+
+        if (!isGPSEnabled || !isNetworkLocationEnabled) {
+            CreateLocationAccessAlertDlg();
+            if (!m_locationAccessDlg.isShowing()) {
+                m_locationAccessDlg.show();
+            }
+        }
+
+        String provider = LocationService.GetBestProvider(m_locationManager);
+
+        if (provider == null) {
+            if (!m_locationAccessDlg.isShowing()) {
+                m_locationAccessDlg.show();
+            }
+            return false;
+        }
+        return true;
+    }
+
+    private void CreateGPSOrCustomLocationAlertDlg(){
+        if(m_gpsOrCustomLocationDlg != null){
+            return;
+        }
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+
+        // Setting Dialog Title
+        alertDialog.setTitle("Select Location Type");
+
+        alertDialog.setCancelable(false);
+
+        // Setting Dialog Message
+        alertDialog
+                .setMessage("You can use GPS to detect your location or set it yourself.");
+
+        // On pressing Settings button
+        alertDialog.setPositiveButton("Use GPS",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        m_settings.UseGPSAsLocation(true);
+                        m_locationTypeSelected = true;
+                        OnLocationTypeSelected();
+                    }
+                });
+
+        // On pressing Settings button
+        alertDialog.setNegativeButton("Set it myself",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        m_settings.UseGPSAsLocation(true);
+                        m_locationTypeSelected = true;
+                        OnChangeLocationClicked(null);
+                    }
+                });
+
+        // Showing Alert Message
+        m_gpsOrCustomLocationDlg = alertDialog.create();
+    }
+
+    private void CreateLocationAccessAlertDlg() {
 		if (m_locationAccessDlg != null) {
 			return;
 		}
 		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
 
 		// Setting Dialog Title
-		alertDialog.setTitle("Locaion Access Required");
+		alertDialog.setTitle("Location Access Required");
 
 		// Setting Dialog Message
 		alertDialog
-				.setMessage("Locaion Access is not enabled. Press go to the settings menu and enbale both \n * GPS satellites\n * Wi-Fi & mobile network");
+				.setMessage("Location Access is not enabled. Press go to the settings menu and enbale both \n * GPS satellites\n * Wi-Fi & mobile network");
 
 		// On pressing Settings button
 		alertDialog.setPositiveButton("Go",

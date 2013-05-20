@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
+import android.widget.*;
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
@@ -32,12 +33,7 @@ import android.graphics.drawable.AnimationDrawable;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.TextView;
 
 public class MainActivity extends Activity implements Observer {
 	private PopRequestManager m_restReqManager;
@@ -49,14 +45,14 @@ public class MainActivity extends Activity implements Observer {
 
 	Button m_refreshButton = null;
 	AnimationDrawable m_refreshButtonAnimation = null;
-	TextView m_statusText = null;
 	AppSettings m_settings = null;
 	AlertDialog m_networkAlertDlg = null;
 	AlertDialog m_locationAccessDlg = null;
     AlertDialog m_gpsOrCustomLocationDlg = null;
     boolean m_locationTypeSelected = false;
+    private Toast m_toast;
 
-	@Override
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
@@ -65,7 +61,6 @@ public class MainActivity extends Activity implements Observer {
 		m_refreshButton = (Button) findViewById(R.id.RefreshButtton);
 		m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
 				.getBackground();
-		m_statusText = (TextView) this.findViewById(R.id.statusText);
 		if (savedInstanceState != null) {
 			ArrayList<FuelDistanceItem> cached = savedInstanceState
 					.getParcelableArrayList(SAVED_DISTANCE_MATRIX_REQS);
@@ -164,7 +159,7 @@ if (!PromptEnableLocationService()) return;
             m_fuelStateMachine.ToggleGPS(useGPS);
             m_fuelStateMachine.Refresh();
         }
-        m_statusText.setText("Waiting For Location Information");
+        ShowStatusText("Waiting For Location Information");
         SwitchToWaitingStatus();
     }
 
@@ -336,22 +331,21 @@ if (!PromptEnableLocationService()) return;
 			SwitchToStopWaiting();
 
 			if (this.m_fuelInfoList.size() != 0) {
-				m_statusText.setText("Completed");
+                ShowStatusText("Completed");
 			} else {
-				m_statusText.setText("Unfortunately, no fuel info was found");
-				m_statusText.setVisibility(View.VISIBLE);
+                ShowStatusText("Unfortunately, no fuel info was found");
 			}
 		}
 		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbReceived) {
-			m_statusText.setText("Suburb Recieved: "
-					+ this.m_fuelStateMachine.m_suburb);
+            ShowStatusText("Suburb Received: "
+                    + this.m_fuelStateMachine.m_suburb);
 			ShowCurrentAddr();
 			this.m_fuelInfoList.clear();
 			SwitchToWaitingStatus();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoReceived) {
-			m_statusText.setText("Fuel Price Info Recieved");
+            ShowStatusText("Fuel Price Info Received");
 			ShowCurrentAddr();
 			SwitchToWaitingStatus();
 			this.m_fuelInfoList.clear();
@@ -360,32 +354,28 @@ if (!PromptEnableLocationService()) return;
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
-			m_statusText.setText("Waiting For Location Information");
+            ShowStatusText("Waiting For Location Information");
 			HideCurrentAddress();
 			SwitchToWaitingStatus();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationReceived) {
-			m_statusText.setText("Location Information Recieved");
+            ShowStatusText("Location Information Received");
 			HideCurrentAddress();
 			SwitchToWaitingStatus();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Timeout) {
 			if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
-				m_statusText
-						.setText("Unable to get location. Probably because location access is disabled.");
+                ShowStatusText("Unable to get location. Probably because location access is disabled.");
 				HideCurrentAddress();
 			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
-				m_statusText
-						.setText("Unable to get suburb. Probably because network is disabled.");
+                ShowStatusText("Unable to get suburb. Probably because network is disabled.");
 			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.FuelInfoEvent) {
-				m_statusText
-						.setText("Unable to get fuel info. Probably because network is disabled.");
+                ShowStatusText("Unable to get fuel info. Probably because network is disabled.");
 			}
 
 			this.SwitchToStopWaiting();
-			m_statusText.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -416,13 +406,11 @@ if (!PromptEnableLocationService()) return;
 	private void SwitchToStopWaiting() {
 		m_refreshButtonAnimation.stop();
 		m_refreshButton.setEnabled(true);
-		m_statusText.setVisibility(View.GONE);
 	}
 
 	private void SwitchToWaitingStatus() {
 		m_refreshButtonAnimation.start();
 		m_refreshButton.setEnabled(false);
-		m_statusText.setVisibility(View.VISIBLE);
 	}
 
 	public void OnShareWithFriendClicked(View v) {
@@ -451,4 +439,14 @@ if (!PromptEnableLocationService()) return;
 			return super.onOptionsItemSelected(item);
 		}
 	}
+
+    private void ShowStatusText(String text) {
+        if(m_toast == null){
+            m_toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+        }
+        else{
+            m_toast.setText(text);
+        }
+        m_toast.show();
+    }
 }

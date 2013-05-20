@@ -1,12 +1,6 @@
 package com.ezhang.pop.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import android.location.Location;
 import android.location.LocationListener;
@@ -19,11 +13,7 @@ import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
-import com.ezhang.pop.model.DestinationList;
-import com.ezhang.pop.model.DistanceMatrix;
-import com.ezhang.pop.model.DistanceMatrixItem;
-import com.ezhang.pop.model.FuelDistanceItem;
-import com.ezhang.pop.model.FuelInfo;
+import com.ezhang.pop.model.*;
 import com.ezhang.pop.rest.PopRequestFactory;
 import com.ezhang.pop.rest.PopRequestManager;
 import com.ezhang.pop.settings.AppSettings;
@@ -32,7 +22,7 @@ import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 
 public class FuelStateMachine extends Observable implements RequestListener {
 
-	private static class TimerHandler extends Handler {
+    private static class TimerHandler extends Handler {
 		FuelStateMachine m_fuelStateMachine = null;
 
 		public TimerHandler(FuelStateMachine fuelStateMachine) {
@@ -47,7 +37,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	enum EmState {
-		Start, GeoLocationRecieved, SuburbRecieved, FuelInfoRecieved, DistanceRecieved, Timeout
+		Start, GeoLocationReceived, SuburbReceived, FuelInfoReceived, DistanceReceived, Timeout
 	}
 
 	enum EmEvent {
@@ -70,6 +60,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	Handler m_timeoutHandler = new TimerHandler(this);
 	AppSettings m_settings = null;
 	boolean m_enableGPS = true;
+
+    FuelInfoCache m_fuelInfoCache = new FuelInfoCache();
+    FuelDistanceInfoCache m_fuelDistanceCached = new FuelDistanceInfoCache();
 
 	public FuelStateMachine(PopRequestManager reqManager,
 			LocationManager locationManager, AppSettings settings,
@@ -105,7 +98,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		if (!m_enableGPS) {
 			m_address = this.m_settings.GetHistoryLocations().get(0);
 			m_suburb = LocationSpliter.Split(m_address).second;
-			this.m_stateMachine.SetState(EmState.SuburbRecieved);
+			this.m_stateMachine.SetState(EmState.SuburbReceived);
 			this.Notify();
 		}
 	}
@@ -148,7 +141,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
 	private void InitStateMachineTransitions() {
 		m_stateMachine.AddTransition(EmState.Start,
-				EmState.GeoLocationRecieved, EmEvent.GeoLocationEvent,
+				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestSuburb();
@@ -178,8 +171,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.GeoLocationRecieved,
-				EmState.SuburbRecieved, EmEvent.SuburbEvent, new EventAction() {
+		m_stateMachine.AddTransition(EmState.GeoLocationReceived,
+				EmState.SuburbReceived, EmEvent.SuburbEvent, new EventAction() {
 					public void PerformAction(Bundle param) {
 						m_suburb = param
 								.getString(PopRequestFactory.BUNDLE_CUR_SUBURB_DATA);
@@ -187,7 +180,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 								.getString(PopRequestFactory.BUNDLE_CUR_ADDRESS_DATA);
 						if (m_suburb == "") {
 							m_stateMachine
-									.SetState(EmState.GeoLocationRecieved);
+									.SetState(EmState.GeoLocationReceived);
 							Notify();
 							RequestSuburb();
 							return;
@@ -197,7 +190,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.GeoLocationRecieved,
+		m_stateMachine.AddTransition(EmState.GeoLocationReceived,
 				EmState.Timeout, EmEvent.Timeout, new EventAction() {
 					public void PerformAction(Bundle param) {
 						m_timeoutEvent = EmEvent.SuburbEvent;
@@ -205,46 +198,41 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.GeoLocationRecieved,
-				EmState.GeoLocationRecieved, EmEvent.Refresh,
+		m_stateMachine.AddTransition(EmState.GeoLocationReceived,
+				EmState.GeoLocationReceived, EmEvent.Refresh,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						if (m_suburb == null) {
 							RequestSuburb();
 							Notify();
 						} else {
-							m_stateMachine.SetState(EmState.SuburbRecieved);
+							m_stateMachine.SetState(EmState.SuburbReceived);
 							Notify();
 							RequestFuelInfo();
 						}
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.SuburbRecieved,
-				EmState.FuelInfoRecieved, EmEvent.FuelInfoEvent,
+		m_stateMachine.AddTransition(EmState.SuburbReceived,
+				EmState.FuelInfoReceived, EmEvent.FuelInfoEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
-						m_fuelInfoList = param
-								.getParcelableArrayList(PopRequestFactory.BUNDLE_FUEL_DATA);
-						if (m_fuelInfoList.size() != 0) {
-							RequestDistanceMatrix(m_fuelInfoList);
-						} else {
-							m_stateMachine.SetState(EmState.DistanceRecieved);
-						}
-						Notify();
+                        List<FuelInfo> fuelInfo = param
+                                .getParcelableArrayList(PopRequestFactory.BUNDLE_FUEL_DATA);
+                        OnFuelInfoReceived(fuelInfo);
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.SuburbRecieved,
-				EmState.SuburbRecieved, EmEvent.Refresh, new EventAction() {
+		m_stateMachine.AddTransition(EmState.SuburbReceived,
+				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestFuelInfo();
 						Notify();
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.SuburbRecieved,
-				EmState.GeoLocationRecieved, EmEvent.GeoLocationEvent,
+		m_stateMachine.AddTransition(EmState.SuburbReceived,
+				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestSuburb();
@@ -252,7 +240,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.SuburbRecieved, EmState.Timeout,
+		m_stateMachine.AddTransition(EmState.SuburbReceived, EmState.Timeout,
 				EmEvent.Timeout, new EventAction() {
 					public void PerformAction(Bundle param) {
 						m_timeoutEvent = EmEvent.FuelInfoEvent;
@@ -260,27 +248,27 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.FuelInfoRecieved,
-				EmState.DistanceRecieved, EmEvent.DistanceEvent,
+		m_stateMachine.AddTransition(EmState.FuelInfoReceived,
+				EmState.DistanceReceived, EmEvent.DistanceEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						StopTimer();
 						DistanceMatrix distanceMatrix = param
 								.getParcelable(PopRequestFactory.BUNDLE_DISTANCE_MATRIX_DATA);
-						OnDistanceMatrixRecieved(distanceMatrix);
+						OnDistanceMatrixReceived(distanceMatrix);
 						Notify();
 					}
 				});
-		m_stateMachine.AddTransition(EmState.FuelInfoRecieved,
-				EmState.SuburbRecieved, EmEvent.Refresh, new EventAction() {
+		m_stateMachine.AddTransition(EmState.FuelInfoReceived,
+				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestFuelInfo();
 						Notify();
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.FuelInfoRecieved,
-				EmState.GeoLocationRecieved, EmEvent.GeoLocationEvent,
+		m_stateMachine.AddTransition(EmState.FuelInfoReceived,
+				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestSuburb();
@@ -288,7 +276,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.FuelInfoRecieved, EmState.Timeout,
+		m_stateMachine.AddTransition(EmState.FuelInfoReceived, EmState.Timeout,
 				EmEvent.Timeout, new EventAction() {
 					public void PerformAction(Bundle param) {
 						m_timeoutEvent = EmEvent.DistanceEvent;
@@ -296,8 +284,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.DistanceRecieved,
-				EmState.GeoLocationRecieved, EmEvent.GeoLocationEvent,
+		m_stateMachine.AddTransition(EmState.DistanceReceived,
+				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestSuburb();
@@ -305,15 +293,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					}
 				});
 
-		m_stateMachine.AddTransition(EmState.DistanceRecieved,
-				EmState.SuburbRecieved, EmEvent.Refresh, new EventAction() {
+		m_stateMachine.AddTransition(EmState.DistanceReceived,
+				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
 						RequestFuelInfo();
 						Notify();
 					}
 				});
-		m_stateMachine.AddTransition(EmState.DistanceRecieved,
-				EmState.DistanceRecieved, EmEvent.RecalculatePrice,
+		m_stateMachine.AddTransition(EmState.DistanceReceived,
+				EmState.DistanceReceived, EmEvent.RecalculatePrice,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
 						OnRecalculatePrice();
@@ -322,7 +310,19 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				});
 	}
 
-	private void OnRecalculatePrice() {
+    private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList) {
+        m_fuelInfoList = fuelInfoList;
+        if (m_fuelInfoList.size() != 0) {
+            RequestDistanceMatrix(m_fuelInfoList);
+        } else {
+            m_stateMachine.SetState(EmState.DistanceReceived);
+        }
+
+        m_fuelInfoCache.CacheFuelInfo(m_fuelInfoList);
+        Notify();
+    }
+
+    private void OnRecalculatePrice() {
 		for (FuelDistanceItem item : this.m_fuelDistanceItems) {
 			if (item.voucherType != null && item.voucherType != "") {
 				if (item.voucherType == "wws") {
@@ -341,7 +341,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		}
 	}
 
-	private void OnDistanceMatrixRecieved(DistanceMatrix distanceMatrix) {
+	private void OnDistanceMatrixReceived(DistanceMatrix distanceMatrix) {
 		m_fuelDistanceItems.clear();
 		int i = 0;
 		for (DistanceMatrixItem distanceItem : distanceMatrix
@@ -374,6 +374,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			m_fuelDistanceItems.add(item);
 			i++;
 		}
+        m_fuelDistanceCached.CacheFuelInfo(m_fuelDistanceItems);
 		Notify();
 	}
 
@@ -411,16 +412,29 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void RequestFuelInfo() {
+        if(m_fuelInfoCache.HitCache(m_settings, m_suburb)){
+            m_stateMachine.SetState(EmState.FuelInfoReceived);
+            OnFuelInfoReceived(m_fuelInfoCache.m_cachedFuelInfo);
+            Notify();
+            return;
+        }
 		StartTimer(5000);
 		Request req = PopRequestFactory.GetFuelInfoRequest(m_suburb,
 				m_settings.IncludeSurroundings(), m_settings.GetFuelType());
+        m_fuelInfoCache.SetCacheContext(m_settings, m_suburb);
 		m_restReqManager.execute(req, this);
 	}
 
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
-		DestinationList dests = new DestinationList();
+        if (m_fuelDistanceCached.HitCache(m_settings, m_suburb, m_address)){
+            m_stateMachine.SetState(EmState.DistanceReceived);
+            Notify();
+            return;
+        }
+
+		DestinationList destinations = new DestinationList();
 		for (FuelInfo item : fuelInfoList) {
-			dests.AddDestination(item.latitude, item.longitude);
+			destinations.AddDestination(item.latitude, item.longitude);
 		}
 		
 		String src = "";
@@ -438,8 +452,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			src = this.m_address.replace(' ', '+');
 		}
 		StartTimer(5000);
+        m_fuelDistanceCached.SetCacheContext(m_settings, m_suburb, m_address);
 		Request req = PopRequestFactory
-				.GetDistanceMatrixRequest(src, dests);
+				.GetDistanceMatrixRequest(src, destinations);
 		m_restReqManager.execute(req, this);			
 	}
 
@@ -491,11 +506,11 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			return;
 		}
 		if (m_suburb == null) {
-			m_stateMachine.SetState(EmState.GeoLocationRecieved);
+			m_stateMachine.SetState(EmState.GeoLocationReceived);
 			Notify();
 			RequestSuburb();
 		} else {
-			m_stateMachine.SetState(EmState.SuburbRecieved);
+			m_stateMachine.SetState(EmState.SuburbReceived);
 			Notify();
 			RequestFuelInfo();
 		}

@@ -335,7 +335,7 @@ if (!PromptEnableLocationService()) return;
 
 	@Override
 	public void update(Observable arg0, Object arg1) {
-		if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceRecieved) {
+		if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceReceived) {
 			ShowCurrentAddr();
 			this.m_fuelInfoList.clear();
 			this.m_fuelInfoList
@@ -351,7 +351,7 @@ if (!PromptEnableLocationService()) return;
 				m_statusText.setVisibility(View.VISIBLE);
 			}
 		}
-		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbRecieved) {
+		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbReceived) {
 			m_statusText.setText("Suburb Recieved: "
 					+ this.m_fuelStateMachine.m_suburb);
 			ShowCurrentAddr();
@@ -359,7 +359,7 @@ if (!PromptEnableLocationService()) return;
 			SwitchToWaitingStatus();
 		}
 
-		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoRecieved) {
+		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoReceived) {
 			m_statusText.setText("Fuel Price Info Recieved");
 			ShowCurrentAddr();
 			SwitchToWaitingStatus();
@@ -374,7 +374,7 @@ if (!PromptEnableLocationService()) return;
 			SwitchToWaitingStatus();
 		}
 
-		if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationRecieved) {
+		if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationReceived) {
 			m_statusText.setText("Location Information Recieved");
 			HideCurrentAddress();
 			SwitchToWaitingStatus();

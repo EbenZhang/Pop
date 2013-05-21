@@ -192,9 +192,7 @@ public class MainActivity extends Activity implements Observer {
         if (m_fuelStateMachine == null) {
             CreateStateMachine();
         } else {
-            RestoreFromSavedInstance();
-            m_fuelStateMachine.ToggleGPS(useGPS);
-            m_fuelStateMachine.Refresh();
+            StartStateMachine();
         }
     }
 
@@ -209,10 +207,14 @@ public class MainActivity extends Activity implements Observer {
         m_fuelStateMachine = new FuelStateMachine(m_reqManager,
                 m_locationManager, m_settings);
         m_fuelStateMachine.addObserver(this);
+        StartStateMachine();
+        this.update(null, null);
+    }
+
+    private void StartStateMachine() {
         RestoreFromSavedInstance();
         m_fuelStateMachine.ToggleGPS(m_settings.UseGPSAsLocation());
         m_fuelStateMachine.Refresh();
-        this.update(null, null);
     }
 
     private void PromptEnableNetwork() {
@@ -237,10 +239,9 @@ public class MainActivity extends Activity implements Observer {
                 .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
         boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
-        isNetworkLocationEnabled |= isOnSimulator; // network location is
-        // not
-        // supported by
-        // simulator.
+
+        // network location is not supported by simulator.
+        isNetworkLocationEnabled |= isOnSimulator;
 
         if (!isGPSEnabled || !isNetworkLocationEnabled) {
             CreateLocationAccessAlertDlg();
@@ -370,67 +371,97 @@ public class MainActivity extends Activity implements Observer {
 		super.onPause();
 	}
 
+    /**
+     * Handles the notifications from StateMachine, then update the UI accordingly.
+     * @param arg0
+     * @param arg1
+     */
 	@Override
 	public void update(Observable arg0, Object arg1) {
 		if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceReceived) {
-			ShowCurrentAddr();
-			this.m_fuelInfoList.clear();
-			this.m_fuelInfoList
-					.addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
-			Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
-			((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
-			SwitchToStopWaiting();
-
-			if (this.m_fuelInfoList.size() != 0) {
-                ShowStatusText("Completed");
-			} else {
-                ShowStatusText("Unfortunately, no fuel info was found");
-			}
+            OnDistanceInfoReceived();
 		}
 		if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbReceived) {
-            ShowStatusText("Suburb Received: "
-                    + this.m_fuelStateMachine.m_suburb);
-			ShowCurrentAddr();
-			this.m_fuelInfoList.clear();
-			SwitchToWaitingStatus();
+            OnSuburbReceived();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoReceived) {
-            ShowStatusText("Fuel Price Info Received");
-			ShowCurrentAddr();
-			SwitchToWaitingStatus();
-			this.m_fuelInfoList.clear();
-			((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
-			
+            OnFuelInfoReceived();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
-            ShowStatusText("Waiting For Location Information");
-			HideCurrentAddress();
-			SwitchToWaitingStatus();
+            OnStateMachineStarted();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationReceived) {
-            ShowStatusText("Location Information Received");
-			HideCurrentAddress();
-			SwitchToWaitingStatus();
+            OnLocationReceived();
 		}
 
 		if (this.m_fuelStateMachine.GetCurState() == EmState.Timeout) {
-			if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
-                ShowStatusText("Unable to get location. Probably because location access is disabled.");
-				HideCurrentAddress();
-			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
-                ShowStatusText("Unable to get suburb. Probably because network is disabled.");
-			} else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.FuelInfoEvent) {
-                ShowStatusText("Unable to get fuel info. Probably because network is disabled.");
-			}
-
-			this.SwitchToStopWaiting();
+            OnTimeout();
 		}
 	}
 
-	private void ShowCurrentAddr() {
+    /**
+     * Handles timeout event from the StateMachine.
+     */
+    private void OnTimeout() {
+        if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
+            ShowStatusText("Unable to get location. Probably because location access is disabled.");
+            HideCurrentAddress();
+        } else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
+            ShowStatusText("Unable to get suburb. Probably because network is disabled.");
+        } else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.FuelInfoEvent) {
+            ShowStatusText("Unable to get fuel info. Probably because network is disabled.");
+        }
+        this.SwitchToStopWaiting();
+    }
+
+    private void OnStateMachineStarted() {
+        ShowStatusText("Waiting For Location Information");
+        HideCurrentAddress();
+        SwitchToWaitingStatus();
+    }
+
+    private void OnLocationReceived() {
+        ShowStatusText("Location Information Received");
+        HideCurrentAddress();
+        SwitchToWaitingStatus();
+    }
+
+    private void OnFuelInfoReceived() {
+        ShowStatusText("Fuel Price Info Received");
+        ShowCurrentAddr();
+        SwitchToWaitingStatus();
+        this.m_fuelInfoList.clear();
+        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
+    }
+
+    private void OnSuburbReceived() {
+        ShowStatusText("Suburb Received: "
+                + this.m_fuelStateMachine.m_suburb);
+        ShowCurrentAddr();
+        this.m_fuelInfoList.clear();
+        SwitchToWaitingStatus();
+    }
+
+    private void OnDistanceInfoReceived() {
+        ShowCurrentAddr();
+        this.m_fuelInfoList.clear();
+        this.m_fuelInfoList
+                .addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
+        Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
+        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
+        SwitchToStopWaiting();
+
+        if (this.m_fuelInfoList.size() != 0) {
+            ShowStatusText("Completed");
+        } else {
+            ShowStatusText("Unfortunately, no fuel info was found");
+        }
+    }
+
+    private void ShowCurrentAddr() {
 		if (this.m_fuelStateMachine.m_suburb != null
 				&& this.m_fuelStateMachine.m_suburb != "") {
 			int indexOfSuburb = this.m_fuelStateMachine.m_address
@@ -493,7 +524,7 @@ public class MainActivity extends Activity implements Observer {
 
     private void ShowStatusText(String text) {
         if(m_toast == null){
-            m_toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
+            m_toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
         }
         else{
             m_toast.setText(text);

@@ -41,7 +41,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	enum EmEvent {
-		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout, RecalculatePrice
+		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout
 	}
 
     /**
@@ -180,19 +180,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.GeoLocationReceived,
 				EmState.SuburbReceived, EmEvent.SuburbEvent, new EventAction() {
 					public void PerformAction(Bundle param) {
-						m_suburb = param
-								.getString(RequestFactory.BUNDLE_CUR_SUBURB_DATA);
-						m_address = param
-								.getString(RequestFactory.BUNDLE_CUR_ADDRESS_DATA);
-						if (m_suburb.equals("")) {
-							m_stateMachine
-									.SetState(EmState.GeoLocationReceived);
-							Notify();
-							RequestSuburb();
-							return;
-						}
-						Notify();
-						RequestFuelInfo();
+                        OnSuburbInfoReceived(param);
 					}
 				});
 
@@ -305,15 +293,23 @@ public class FuelStateMachine extends Observable implements RequestListener {
 						Notify();
 					}
 				});
-		m_stateMachine.AddTransition(EmState.DistanceReceived,
-				EmState.DistanceReceived, EmEvent.RecalculatePrice,
-				new EventAction() {
-					public void PerformAction(Bundle param) {
-						OnRecalculatePrice();
-						Notify();
-					}
-				});
 	}
+
+    private void OnSuburbInfoReceived(Bundle param) {
+        m_suburb = param
+                .getString(RequestFactory.BUNDLE_CUR_SUBURB_DATA);
+        m_address = param
+                .getString(RequestFactory.BUNDLE_CUR_ADDRESS_DATA);
+        if (m_suburb.equals("")) {
+            m_stateMachine
+                    .SetState(EmState.GeoLocationReceived);
+            Notify();
+            RequestSuburb();
+            return;
+        }
+        Notify();
+        RequestFuelInfo();
+    }
 
     private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList) {
         UpdateFuelInfoList(fuelInfoList);
@@ -333,25 +329,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
             m_fuelInfoChanged = true;
         }
     }
-
-    private void OnRecalculatePrice() {
-		for (FuelDistanceItem item : this.m_fuelDistanceItems) {
-			if (item.voucherType != null && item.voucherType != "") {
-				if (item.voucherType.equals("wws")) {
-					if (m_settings.m_wwsDiscount != item.voucher) {
-						item.price += item.voucher - m_settings.m_wwsDiscount;
-						item.voucher = m_settings.m_wwsDiscount;
-					}
-				}
-				if (item.voucherType.equals("coles")) {
-					if (m_settings.m_colesDiscount != item.voucher) {
-						item.price += item.voucher - m_settings.m_colesDiscount;
-						item.voucher = m_settings.m_colesDiscount;
-					}
-				}
-			}
-		}
-	}
 
 	private void OnDistanceMatrixReceived(DistanceMatrix distanceMatrix) {
 		m_fuelDistanceItems.clear();
@@ -395,14 +372,17 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	public void onRequestFinished(Request request, Bundle resultData) {
 		if (request.getRequestType() == RequestFactory.REQ_TYPE_DISTANCE_MATRIX) {
 			this.m_stateMachine.HandleEvent(EmEvent.DistanceEvent, resultData);
+            return;
 		}
 
 		if (request.getRequestType() == RequestFactory.REQ_TYPE_GET_CUR_SUBURB) {
 			this.m_stateMachine.HandleEvent(EmEvent.SuburbEvent, resultData);
+            return;
 		}
 
 		if (request.getRequestType() == RequestFactory.REQ_TYPE_FUEL) {
 			this.m_stateMachine.HandleEvent(EmEvent.FuelInfoEvent, resultData);
+            return;
 		}
 	}
 
@@ -492,20 +472,16 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		}
 
 		public void onProviderDisabled(String provider) {
-			// Provider��disableʱ�����˺������GPS���ر�
 		}
 
 		public void onProviderEnabled(String provider) {
-			// Provider��enableʱ�����˺������GPS����
 		}
 
 		public void onStatusChanged(String provider, int status, Bundle extras) {
-			// Provider��ת̬�ڿ��á���ʱ�����ú��޷������״ֱ̬���л�ʱ�����˺���
 		}
 	};
 
 	public EmState GetCurState() {
-		// TODO Auto-generated method stub
 		return this.m_stateMachine.GetState();
 	}
 
@@ -536,10 +512,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			Notify();
 			RequestFuelInfo();
 		}
-	}
-
-	public void ReCalculatePrice() {
-		this.m_stateMachine.HandleEvent(EmEvent.RecalculatePrice, null);
 	}
 
     public void RestoreFromSaveInstanceState(Bundle savedInstanceState){

@@ -119,7 +119,7 @@ public class CustomLocationActivity extends Activity {
 		}
 
         String lastSuburb = m_settings.GetLastSuburb();
-        if(lastSuburb != ""){
+        if(!lastSuburb.equals("")){
             int pos = adapter.getPosition(lastSuburb);
             suburbSelector.setSelection(pos);
         }

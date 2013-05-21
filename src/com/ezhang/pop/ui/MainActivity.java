@@ -127,7 +127,9 @@ public class MainActivity extends Activity implements Observer {
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-        m_fuelStateMachine.SaveInstanceState(outState);
+        if(m_fuelStateMachine != null){
+            m_fuelStateMachine.SaveInstanceState(outState);
+        }
 		super.onSaveInstanceState(outState);
 	}
 
@@ -170,8 +172,8 @@ public class MainActivity extends Activity implements Observer {
             CreateGPSOrCustomLocationAlertDlg();
             if(!m_gpsOrCustomLocationDlg.isShowing()){
                 m_gpsOrCustomLocationDlg.show();
-                return EmIndication.EmStop;
             }
+            return EmIndication.EmStop;
         }
         return EmIndication.EmContinue;
     }
@@ -197,7 +199,7 @@ public class MainActivity extends Activity implements Observer {
     }
 
     private void RestoreFromSavedInstance() {
-        if(m_savedInstanceState != null){
+        if(m_savedInstanceState != null && m_fuelStateMachine != null){
             m_fuelStateMachine.RestoreFromSaveInstanceState(m_savedInstanceState);
             m_savedInstanceState = null;
         }
@@ -208,6 +210,7 @@ public class MainActivity extends Activity implements Observer {
                 m_locationManager, m_settings);
         m_fuelStateMachine.addObserver(this);
         RestoreFromSavedInstance();
+        m_fuelStateMachine.ToggleGPS(m_settings.UseGPSAsLocation());
         m_fuelStateMachine.Refresh();
         this.update(null, null);
     }

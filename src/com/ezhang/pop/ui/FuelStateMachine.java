@@ -84,8 +84,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_settings = settings;
 
 		InitStateMachineTransitions();
-
-		ToggleGPS(settings.UseGPSAsLocation());
 	}
 
 	public void ToggleGPS(boolean toggleOn) {

@@ -75,7 +75,7 @@
             android:layout_alignWithParentIfMissing="true" android:layout_alignParentBottom="true">
 
             <Button
-                android:id="@+id/RefreshButtton"
+                android:id="@+id/RefreshButton"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:background="@drawable/refresh_animation"

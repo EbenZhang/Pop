@@ -74,7 +74,7 @@ public class MainActivity extends Activity implements Observer {
 		setContentView(R.layout.main_activity);
 
 		m_reqManager = RequestManager.from(this);
-		m_refreshButton = (Button) findViewById(R.id.RefreshButtton);
+		m_refreshButton = (Button) findViewById(R.id.RefreshButton);
 		m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
 				.getBackground();
 

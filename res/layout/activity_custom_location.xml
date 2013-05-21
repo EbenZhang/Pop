@@ -61,11 +61,12 @@
                     android:layout_height="wrap_content"
                     android:text="@string/suburb"/>
 
-            <Spinner
-                    android:id="@+id/suburbAddress"
-                    android:layout_width="0dp"
+            <AutoCompleteTextView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"/>
+                    android:completionThreshold="1"
+                    android:inputType="text"
+                    android:id="@+id/autoCompleteSuburb"/>
         </LinearLayout>
     </RadioGroup>
 

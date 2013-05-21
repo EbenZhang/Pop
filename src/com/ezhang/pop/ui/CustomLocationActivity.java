@@ -42,13 +42,12 @@ public class CustomLocationActivity extends Activity {
 		final RadioGroup group = (RadioGroup) this
 				.findViewById(R.id.locationRadioGroup);
 
-        Spinner suburbSelector = (Spinner) findViewById(R.id.suburbAddress);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-            this, R.array.suburbs, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_list_item_single_choice);
+            this, R.array.suburbs, android.R.layout.simple_list_item_1);
+        AutoCompleteTextView suburbSelector = (AutoCompleteTextView) findViewById(R.id.autoCompleteSuburb);
         suburbSelector.setAdapter(adapter);
 
-		suburbSelector.setOnTouchListener(new OnTouchListener() {
+        suburbSelector.setOnTouchListener(new OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 AutoSelectCustomRadioBtn(group);
@@ -56,7 +55,7 @@ public class CustomLocationActivity extends Activity {
             }
         });
 
-		suburbSelector.setOnKeyListener(new OnKeyListener() {
+        suburbSelector.setOnKeyListener(new OnKeyListener() {
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 AutoSelectCustomRadioBtn(group);
                 return false;
@@ -120,8 +119,9 @@ public class CustomLocationActivity extends Activity {
 
         String lastSuburb = m_settings.GetLastSuburb();
         if(!lastSuburb.equals("")){
-            int pos = adapter.getPosition(lastSuburb);
-            suburbSelector.setSelection(pos);
+            suburbSelector.setText(lastSuburb);
+        }else{
+            suburbSelector.setText(adapter.getItem(0));
         }
 	}
 
@@ -133,7 +133,14 @@ public class CustomLocationActivity extends Activity {
 
 		boolean addNewLocation = selectedID == R.id.radioBtnCustomLocation;
 		if (addNewLocation) {
-            String suburb = ((Spinner) findViewById(R.id.suburbAddress)).getSelectedItem().toString();
+            AutoCompleteTextView suburbSelector = (AutoCompleteTextView) findViewById(R.id.autoCompleteSuburb);
+            String suburb = suburbSelector.getText().toString();
+            boolean existing = ((ArrayAdapter<String>)suburbSelector.getAdapter()).getPosition(suburb) != -1;
+            if(!existing){
+                Toast.makeText(this, "Cannot find suburb: '" + suburb + "'", Toast.LENGTH_SHORT).show();
+                suburbSelector.requestFocus();
+                return;
+            }
             EditText streetAddrEditText = (EditText) this.findViewById(R.id.streetAddress);
             String streetAddr = streetAddrEditText.getText().toString();
             boolean notEmpty = NotEmptyValidator.NotEmpty(this, streetAddr, "Please input your address.");

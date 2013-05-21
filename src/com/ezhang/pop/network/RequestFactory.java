@@ -1,12 +1,15 @@
-package com.ezhang.pop.rest;
+package com.ezhang.pop.network;
 
 import android.location.Location;
 
+import com.ezhang.pop.RequestOperations.CurrentAddressQueryOpertion;
+import com.ezhang.pop.RequestOperations.DistanceMatrixQueryOperation;
+import com.ezhang.pop.RequestOperations.FuelInfoOperation;
 import com.ezhang.pop.model.DestinationList;
 import com.ezhang.pop.utils.LocationFormatter;
 import com.foxykeep.datadroid.requestmanager.Request;
 
-public class PopRequestFactory {
+public class RequestFactory {
 	// Request types
     public static final int REQ_TYPE_DISTANCE_MATRIX = 1;
     

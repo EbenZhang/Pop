@@ -1,4 +1,4 @@
-package com.ezhang.pop.rest;
+package com.ezhang.pop.RequestOperations;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.os.Bundle;
 import com.ezhang.pop.model.Destination;
 import com.ezhang.pop.model.DestinationList;
 import com.ezhang.pop.model.DistanceMatrix;
+import com.ezhang.pop.network.RequestFactory;
 import com.foxykeep.datadroid.exception.ConnectionException;
 import com.foxykeep.datadroid.exception.DataException;
 import com.foxykeep.datadroid.network.NetworkConnection;
@@ -42,7 +43,7 @@ public class DistanceMatrixQueryOperation implements Operation {
 				DistanceMatrix.class);
 
 		Bundle bundle = new Bundle();
-		bundle.putParcelable(PopRequestFactory.BUNDLE_DISTANCE_MATRIX_DATA,
+		bundle.putParcelable(RequestFactory.BUNDLE_DISTANCE_MATRIX_DATA,
 				distanceMatrix);
 		return bundle;
 	}

@@ -1,5 +1,6 @@
-package com.ezhang.pop.rest;
+package com.ezhang.pop.RequestOperations;
 
+import com.ezhang.pop.network.RequestFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -69,8 +70,8 @@ public class CurrentAddressQueryOpertion implements Operation {
 		} catch (Exception ex) {
 		}
 		Bundle bundle = new Bundle();
-		bundle.putString(PopRequestFactory.BUNDLE_CUR_SUBURB_DATA, suburb);
-		bundle.putString(PopRequestFactory.BUNDLE_CUR_ADDRESS_DATA, address);
+		bundle.putString(RequestFactory.BUNDLE_CUR_SUBURB_DATA, suburb);
+		bundle.putString(RequestFactory.BUNDLE_CUR_ADDRESS_DATA, address);
 		return bundle;
 	}
 }

@@ -12,7 +12,7 @@ import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
-import com.ezhang.pop.rest.PopRequestManager;
+import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
 import com.ezhang.pop.settings.SettingsActivity;
 import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
@@ -36,7 +36,7 @@ import android.view.View;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class MainActivity extends Activity implements Observer {
-	private PopRequestManager m_restReqManager;
+	private RequestManager m_reqManager;
 	private LocationManager m_locationManager;
 	private FuelStateMachine m_fuelStateMachine;
 	private ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
@@ -57,7 +57,7 @@ public class MainActivity extends Activity implements Observer {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
 
-		m_restReqManager = PopRequestManager.from(this);
+		m_reqManager = RequestManager.from(this);
 		m_refreshButton = (Button) findViewById(R.id.RefreshButtton);
 		m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
 				.getBackground();
@@ -155,7 +155,7 @@ public class MainActivity extends Activity implements Observer {
         SwitchToWaitingStatus();
 
         if (m_fuelStateMachine == null) {
-            m_fuelStateMachine = new FuelStateMachine(m_restReqManager,
+            m_fuelStateMachine = new FuelStateMachine(m_reqManager,
                     m_locationManager, m_settings);
             m_fuelStateMachine.addObserver(this);
         } else {

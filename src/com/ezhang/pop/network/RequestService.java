@@ -1,4 +1,4 @@
-package com.ezhang.pop.rest;
+package com.ezhang.pop.network;
 /**
  * 2011 Foxykeep (http://datadroid.foxykeep.com)
  * <p>
@@ -7,18 +7,17 @@ package com.ezhang.pop.rest;
  * day, and you think this stuff is worth it, you can buy me a beer in return
  */
 
-
-import com.foxykeep.datadroid.service.RequestService;
-import com.ezhang.pop.rest.PopRequestManager;
-
 import android.content.Intent;
+import com.ezhang.pop.RequestOperations.CurrentAddressQueryOpertion;
+import com.ezhang.pop.RequestOperations.DistanceMatrixQueryOperation;
+import com.ezhang.pop.RequestOperations.FuelInfoOperation;
 
 /**
- * This class is called by the {@link PopRequestManager} through the {@link Intent} system.
+ * This class is called by the {@link RequestManager} through the {@link Intent} system.
  *
  * @author Foxykeep
  */
-public final class PopService extends RequestService {
+public final class RequestService extends com.foxykeep.datadroid.service.RequestService {
 	
 	@Override  
     public void onCreate() {  
@@ -43,11 +42,11 @@ public final class PopService extends RequestService {
             // TODO : Add a case per worker where you do the following things :
             // - create the corresponding Operation and return it
             // See the PoC if you need more information.
-	        case PopRequestFactory.REQ_TYPE_DISTANCE_MATRIX:
+	        case RequestFactory.REQ_TYPE_DISTANCE_MATRIX:
 	            return new DistanceMatrixQueryOperation();
-	        case PopRequestFactory.REQ_TYPE_GET_CUR_SUBURB:
+	        case RequestFactory.REQ_TYPE_GET_CUR_SUBURB:
 	        	return new CurrentAddressQueryOpertion();
-	        case PopRequestFactory.REQ_TYPE_FUEL:
+	        case RequestFactory.REQ_TYPE_FUEL:
 	        	return new FuelInfoOperation();
         }
         return null;

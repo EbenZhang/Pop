@@ -1,4 +1,4 @@
-package com.ezhang.pop.rest;
+package com.ezhang.pop.RequestOperations;
 
 import java.io.ByteArrayInputStream;
 
@@ -9,6 +9,7 @@ import android.content.Context;
 import android.os.Bundle;
 
 import com.ezhang.pop.model.FuelInfoXmlHandler;
+import com.ezhang.pop.network.RequestFactory;
 import com.foxykeep.datadroid.exception.ConnectionException;
 import com.foxykeep.datadroid.exception.DataException;
 import com.foxykeep.datadroid.network.NetworkConnection;
@@ -56,7 +57,7 @@ public class FuelInfoOperation implements Operation {
 			throw new RuntimeException(e);
 		}
 		Bundle bundle = new Bundle();
-		bundle.putParcelableArrayList(PopRequestFactory.BUNDLE_FUEL_DATA,
+		bundle.putParcelableArrayList(RequestFactory.BUNDLE_FUEL_DATA,
 				handler.FuelItems);
 		return bundle;
 	}

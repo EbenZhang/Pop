@@ -8,7 +8,7 @@ package com.ezhang.pop.network;
  */
 
 import android.content.Intent;
-import com.ezhang.pop.RequestOperations.CurrentAddressQueryOpertion;
+import com.ezhang.pop.RequestOperations.CurrentAddressQueryOperation;
 import com.ezhang.pop.RequestOperations.DistanceMatrixQueryOperation;
 import com.ezhang.pop.RequestOperations.FuelInfoOperation;
 
@@ -39,13 +39,12 @@ public final class RequestService extends com.foxykeep.datadroid.service.Request
     @Override
     public Operation getOperationForType(int requestType) {
         switch (requestType) {
-            // TODO : Add a case per worker where you do the following things :
             // - create the corresponding Operation and return it
             // See the PoC if you need more information.
 	        case RequestFactory.REQ_TYPE_DISTANCE_MATRIX:
 	            return new DistanceMatrixQueryOperation();
 	        case RequestFactory.REQ_TYPE_GET_CUR_SUBURB:
-	        	return new CurrentAddressQueryOpertion();
+	        	return new CurrentAddressQueryOperation();
 	        case RequestFactory.REQ_TYPE_FUEL:
 	        	return new FuelInfoOperation();
         }

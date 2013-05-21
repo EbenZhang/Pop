@@ -2,6 +2,8 @@
   <dictionary name="eben">
     <words>
       <w>addr</w>
+      <w>ezhang</w>
+      <w>latlng</w>
     </words>
   </dictionary>
 </component>

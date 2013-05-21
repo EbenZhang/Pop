@@ -36,21 +36,37 @@ import android.view.View;
 import android.widget.AdapterView.OnItemClickListener;
 
 public class MainActivity extends Activity implements Observer {
+    /**
+     * There's no need to continue if switched to another activity
+     */
+    enum EmIndication{
+        EmContinue,
+        EmStop
+    }
+
+    /**
+     * Manage requests that query data from remote service.
+     * */
 	private RequestManager m_reqManager;
 	private LocationManager m_locationManager;
 	private FuelStateMachine m_fuelStateMachine;
 	private ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
-	private ListView m_listView = null;
-	private static final String SAVED_DISTANCE_MATRIX_REQS = "com.ezhang.pop.saved.distance.matrix.reqs";
+	private ListView m_fuelDistanceItemlistView = null;
 
-	Button m_refreshButton = null;
-	AnimationDrawable m_refreshButtonAnimation = null;
-	AppSettings m_settings = null;
-	AlertDialog m_networkAlertDlg = null;
-	AlertDialog m_locationAccessDlg = null;
-    AlertDialog m_gpsOrCustomLocationDlg = null;
-    boolean m_locationTypeSelected = false;
+    private Button m_refreshButton = null;
+    private AnimationDrawable m_refreshButtonAnimation = null;
+    private AppSettings m_settings = null;
+    private AlertDialog m_networkAlertDlg = null;
+    private AlertDialog m_locationAccessDlg = null;
+    private AlertDialog m_gpsOrCustomLocationDlg = null;
+
+    /**
+     * The user will be required to choose the location provider type: location service or set the location manually.
+     * This variable is to prevent the selection dialog appearing again on again as the app might be resumed several times during the first session.
+     * */
+    private boolean m_locationTypeSelected = false;
     private Toast m_toast;
+    private Bundle m_savedInstanceState;
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,29 +77,32 @@ public class MainActivity extends Activity implements Observer {
 		m_refreshButton = (Button) findViewById(R.id.RefreshButtton);
 		m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
 				.getBackground();
+
 		if (savedInstanceState != null) {
-			ArrayList<FuelDistanceItem> cached = savedInstanceState
-					.getParcelableArrayList(SAVED_DISTANCE_MATRIX_REQS);
-			m_fuelInfoList.addAll(cached);
+            m_savedInstanceState = savedInstanceState;
 		}
 
-		m_listView = (ListView) this.findViewById(R.id.listView);
-		m_listView.setAdapter(new FuelListAdapter(this, m_fuelInfoList));
-		m_listView.setOnItemClickListener(new OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> a, View v, int position,
-					long id) {
-                Object o = m_listView.getItemAtPosition(position);
+        InitFuelDistanceItemListView();
+        m_settings = new AppSettings(this);
+	}
+
+    private void InitFuelDistanceItemListView() {
+        m_fuelDistanceItemlistView = (ListView) this.findViewById(R.id.fuelDistanceItemlistView);
+        m_fuelDistanceItemlistView.setAdapter(new FuelListAdapter(this, m_fuelInfoList));
+        m_fuelDistanceItemlistView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> a, View v, int position,
+                                    long id) {
+                Object o = m_fuelDistanceItemlistView.getItemAtPosition(position);
                 FuelDistanceItem fullObject = (FuelDistanceItem) o;
                 NavigationLaunch launch = new NavigationLaunch(
                         MainActivity.this, fullObject.latitude, fullObject.longitude);
                 launch.Launch();
             }
         });
-        m_settings = new AppSettings(this);
-	}
+    }
 
-	public void OnRefreshClicked(View v) {
+    public void OnRefreshClicked(View v) {
 		if (this.m_fuelStateMachine != null) {
 			this.m_fuelStateMachine.Refresh();
 		}
@@ -108,10 +127,15 @@ public class MainActivity extends Activity implements Observer {
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+        m_fuelStateMachine.SaveInstanceState(outState);
 		super.onSaveInstanceState(outState);
-		outState.putParcelableArrayList(SAVED_DISTANCE_MATRIX_REQS,
-				m_fuelInfoList);
 	}
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        m_savedInstanceState = savedInstanceState;
+        super.onRestoreInstanceState(savedInstanceState);
+    }
 
 	@Override
 	protected void onResume() {
@@ -132,36 +156,60 @@ public class MainActivity extends Activity implements Observer {
 
         PromptEnableNetwork();
 
+        if (PromptLocationTypeSelection() == EmIndication.EmStop){
+            return;
+        }
+
+        OnLocationTypeSelected();
+	}
+
+    private EmIndication PromptLocationTypeSelection() {
         boolean isFirstRun = this.m_settings.IsFirstRun();
         if(isFirstRun && !m_locationTypeSelected)
         {
             CreateGPSOrCustomLocationAlertDlg();
             if(!m_gpsOrCustomLocationDlg.isShowing()){
                 m_gpsOrCustomLocationDlg.show();
-                return;
+                return EmIndication.EmStop;
             }
         }
-
-        OnLocationTypeSelected();
-	}
+        return EmIndication.EmContinue;
+    }
 
     private void OnLocationTypeSelected() {
         boolean useGPS = m_settings.UseGPSAsLocation();
         if (useGPS) {
-            if (!PromptEnableLocationService()) return;
+            if (PromptEnableLocationService() == EmIndication.EmStop){
+                return;
+            }
         }
 
         ShowStatusText("Waiting For Location Information");
         SwitchToWaitingStatus();
 
         if (m_fuelStateMachine == null) {
-            m_fuelStateMachine = new FuelStateMachine(m_reqManager,
-                    m_locationManager, m_settings);
-            m_fuelStateMachine.addObserver(this);
+            CreateStateMachine();
         } else {
+            RestoreFromSavedInstance();
             m_fuelStateMachine.ToggleGPS(useGPS);
             m_fuelStateMachine.Refresh();
         }
+    }
+
+    private void RestoreFromSavedInstance() {
+        if(m_savedInstanceState != null){
+            m_fuelStateMachine.RestoreFromSaveInstanceState(m_savedInstanceState);
+            m_savedInstanceState = null;
+        }
+    }
+
+    private void CreateStateMachine() {
+        m_fuelStateMachine = new FuelStateMachine(m_reqManager,
+                m_locationManager, m_settings);
+        m_fuelStateMachine.addObserver(this);
+        RestoreFromSavedInstance();
+        m_fuelStateMachine.Refresh();
+        this.update(null, null);
     }
 
     private void PromptEnableNetwork() {
@@ -179,7 +227,7 @@ public class MainActivity extends Activity implements Observer {
         }
     }
 
-    private boolean PromptEnableLocationService() {
+    private EmIndication PromptEnableLocationService() {
         boolean isGPSEnabled = m_locationManager
                 .isProviderEnabled(LocationManager.GPS_PROVIDER);
         boolean isNetworkLocationEnabled = m_locationManager
@@ -204,9 +252,9 @@ public class MainActivity extends Activity implements Observer {
             if (!m_locationAccessDlg.isShowing()) {
                 m_locationAccessDlg.show();
             }
-            return false;
+            return EmIndication.EmStop;
         }
-        return true;
+        return EmIndication.EmContinue;
     }
 
     private void CreateGPSOrCustomLocationAlertDlg(){
@@ -286,7 +334,7 @@ public class MainActivity extends Activity implements Observer {
 
 		// Setting Dialog Message
 		alertDialogBuilder
-				.setMessage("Network is not enabled. Press either enable Wi-Fi or Mobile Network Data");
+				.setMessage("Network is not enabled. Please either enable Wi-Fi or Mobile Network Data");
 
 		// On pressing Settings button
 		alertDialogBuilder.setPositiveButton("Wi-Fi",
@@ -327,7 +375,7 @@ public class MainActivity extends Activity implements Observer {
 			this.m_fuelInfoList
 					.addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
 			Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
-			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
+			((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
 			SwitchToStopWaiting();
 
 			if (this.m_fuelInfoList.size() != 0) {
@@ -349,7 +397,7 @@ public class MainActivity extends Activity implements Observer {
 			ShowCurrentAddr();
 			SwitchToWaitingStatus();
 			this.m_fuelInfoList.clear();
-			((BaseAdapter) m_listView.getAdapter()).notifyDataSetChanged();
+			((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
 			
 		}
 

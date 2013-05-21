@@ -44,9 +44,19 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout, RecalculatePrice
 	}
 
-	StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
+    /**
+     * We will save the fuel distance info items and restore them when killed by the system (Such as rotation and switching between apps)
+     * */
+    private static final String SAVED_FUEL_INFO_ITEMS = "com.ezhang.pop.saved.fuel.info.items";
+    /**
+     * We will save the fuel distance info items and restore them when killed by the system (Such as rotation and switching between apps)
+     * */
+    private static final String SAVED_FUEL_DISTANCE_INFO_ITEMS = "com.ezhang.pop.saved.fuel.distance.info.items";
+
+
+    StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
 			EmState.Start);
-	public ArrayList<FuelDistanceItem> m_fuelDistanceItems = new ArrayList<FuelDistanceItem>();
+	public List<FuelDistanceItem> m_fuelDistanceItems = new ArrayList<FuelDistanceItem>();
 	private List<FuelInfo> m_fuelInfoList = null;
 	private RequestManager m_restReqManager;
 	private LocationManager m_locationManager;
@@ -76,8 +86,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		InitStateMachineTransitions();
 
 		ToggleGPS(settings.UseGPSAsLocation());
-
-		Refresh();
 	}
 
 	public void ToggleGPS(boolean toggleOn) {
@@ -178,7 +186,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 								.getString(RequestFactory.BUNDLE_CUR_SUBURB_DATA);
 						m_address = param
 								.getString(RequestFactory.BUNDLE_CUR_ADDRESS_DATA);
-						if (m_suburb == "") {
+						if (m_suburb.equals("")) {
 							m_stateMachine
 									.SetState(EmState.GeoLocationReceived);
 							Notify();
@@ -331,13 +339,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
     private void OnRecalculatePrice() {
 		for (FuelDistanceItem item : this.m_fuelDistanceItems) {
 			if (item.voucherType != null && item.voucherType != "") {
-				if (item.voucherType == "wws") {
+				if (item.voucherType.equals("wws")) {
 					if (m_settings.m_wwsDiscount != item.voucher) {
 						item.price += item.voucher - m_settings.m_wwsDiscount;
 						item.voucher = m_settings.m_wwsDiscount;
 					}
 				}
-				if (item.voucherType == "coles") {
+				if (item.voucherType.equals("coles")) {
 					if (m_settings.m_colesDiscount != item.voucher) {
 						item.price += item.voucher - m_settings.m_colesDiscount;
 						item.voucher = m_settings.m_colesDiscount;
@@ -434,6 +442,10 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
         if (m_fuelDistanceCached.HitCache(m_settings, m_suburb, m_address)){
             m_stateMachine.SetState(EmState.DistanceReceived);
+            if (m_fuelDistanceItems != m_fuelDistanceCached.m_cachedFuelDistanceInfo)
+            {
+                m_fuelDistanceItems = m_fuelDistanceCached.m_cachedFuelDistanceInfo;
+            }
             return;
         }
 
@@ -531,4 +543,14 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	public void ReCalculatePrice() {
 		this.m_stateMachine.HandleEvent(EmEvent.RecalculatePrice, null);
 	}
+
+    public void RestoreFromSaveInstanceState(Bundle savedInstanceState){
+        m_fuelInfoCache = savedInstanceState.getParcelable(SAVED_FUEL_INFO_ITEMS);
+        m_fuelDistanceCached = savedInstanceState.getParcelable(SAVED_FUEL_DISTANCE_INFO_ITEMS);
+    }
+
+    public void SaveInstanceState(Bundle outState){
+        outState.putParcelable(SAVED_FUEL_INFO_ITEMS, m_fuelInfoCache);
+        outState.putParcelable(SAVED_FUEL_DISTANCE_INFO_ITEMS, m_fuelDistanceCached);
+    }
 }

@@ -43,6 +43,4 @@ public class DestinationList implements Parcelable {
 			return new DestinationList[size];
 		}
 	};
-	
-
 }

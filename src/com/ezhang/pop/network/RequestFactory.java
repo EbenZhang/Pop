@@ -2,7 +2,7 @@ package com.ezhang.pop.network;
 
 import android.location.Location;
 
-import com.ezhang.pop.RequestOperations.CurrentAddressQueryOpertion;
+import com.ezhang.pop.RequestOperations.CurrentAddressQueryOperation;
 import com.ezhang.pop.RequestOperations.DistanceMatrixQueryOperation;
 import com.ezhang.pop.RequestOperations.FuelInfoOperation;
 import com.ezhang.pop.model.DestinationList;
@@ -42,7 +42,7 @@ public class RequestFactory {
     public static Request GetCurrentSuburbRequest(Location location) {
         Request request = new Request(REQ_TYPE_GET_CUR_SUBURB);
         request.setMemoryCacheEnabled(true);
-        request.put(CurrentAddressQueryOpertion.CUR_GEO_LOCATION, LocationFormatter.GoogleQueryFormat(location));
+        request.put(CurrentAddressQueryOperation.CUR_GEO_LOCATION, LocationFormatter.GoogleQueryFormat(location));
         return request;
     }
 

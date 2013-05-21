@@ -15,7 +15,10 @@ import com.foxykeep.datadroid.network.NetworkConnection.Method;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.service.RequestService.Operation;
 
-public class CurrentAddressQueryOpertion implements Operation {
+/**
+ * Query the current address based on the geo location via google maps
+ * */
+public class CurrentAddressQueryOperation implements Operation {
 	
 	public static final String CUR_GEO_LOCATION = "com.ezhang.pop.current.location";
 
@@ -39,7 +42,8 @@ public class CurrentAddressQueryOpertion implements Operation {
 	private Bundle parseResult(String response) {
 		String suburb = "";
 		String address = "";
-		try { 
+		try {
+            /// google returns a lot of address components, but we only need the first and most concrete one.
 			int beginOfFirstAddrComponent = response.indexOf("\"address_components\"");
 			String formattedAddressTag = "\"formatted_address\" : \"";
 			int endOfFirstAddrComponent = response.indexOf(formattedAddressTag);

@@ -499,7 +499,7 @@ public class MainActivity extends Activity implements Observer {
 		String url = String.format(
 				"https://play.google.com/store/apps/details?id=%s",
 				getApplicationContext().getPackageName());
-		String content = "Hey, I'm using WaFuelFuel, an awesome app can help find the cheapest fuel station nearby.\nCheck it out in GooglePlay: "
+		String content = "Hey, I'm using WaFuelFuel to help find the cheapest and nearest petrol station in Western Australia.\nCheck it out in GooglePlay: "
 				+ url;
 		Intent shareIntent = new Intent(Intent.ACTION_SEND);
 		shareIntent.setType("text/plain");

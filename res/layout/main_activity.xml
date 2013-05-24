@@ -72,6 +72,7 @@
             android:id="@+id/consoleBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:layout_alignWithParentIfMissing="true" android:layout_alignParentBottom="true">
 
             <Button

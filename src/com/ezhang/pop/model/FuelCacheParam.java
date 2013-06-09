@@ -5,6 +5,8 @@ import android.os.Parcelable;
 import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.settings.AppSettings;
 
+import java.util.Date;
+
 public class FuelCacheParam implements Parcelable {
     int m_cachedFuelType = 0;
     int m_cachedDay = 0;
@@ -35,9 +37,9 @@ public class FuelCacheParam implements Parcelable {
         }
     };
 
-    public boolean HitCache(AppSettings settings, String suburb)
+    public boolean HitCache(AppSettings settings, String suburb, Date dayOfFuel)
     {
-        boolean hit = m_cachedDay == TimeUtil.GetCurDay();
+        boolean hit = m_cachedDay == TimeUtil.GetDayFromDate(dayOfFuel);
         hit &= m_cachedFuelType == settings.GetFuelType();
         hit &= settings.m_wwsDiscount == m_wwsVoucher;
         hit &= settings.m_colesDiscount == m_colesVoucher;

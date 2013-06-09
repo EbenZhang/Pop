@@ -1,15 +1,16 @@
 package com.ezhang.pop.model;
 
-import java.util.ArrayList;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import java.util.ArrayList;
 
 public class FuelInfoXmlHandler extends DefaultHandler {
 	private FuelInfo item;
 	private StringBuffer buffer = new StringBuffer();
 	public ArrayList<FuelInfo> FuelItems = new ArrayList<FuelInfo>();
+    public String PublishDate;
 
 	@Override
 	public void startElement(String uri, String localName, String qName,
@@ -48,6 +49,8 @@ public class FuelInfoXmlHandler extends DefaultHandler {
 			item.tradingName = buffer.toString().trim();
 		}else if (localName.equals("location")) {
             item.SetSuburb(buffer.toString().trim());
+        }else if(localName.equals("date")){
+            this.PublishDate = buffer.toString().trim();
         }
 		if (cleanBuffer)
 			buffer.setLength(0);

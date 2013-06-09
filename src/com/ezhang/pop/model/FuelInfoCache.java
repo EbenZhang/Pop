@@ -6,7 +6,7 @@ import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.settings.AppSettings;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,22 +24,22 @@ public class FuelInfoCache implements Parcelable {
         in.readList(m_cachedFuelInfo, FuelInfo.class.getClassLoader());
     }
 
-    public void SetCacheContext(AppSettings settings, String suburb) {
+    private void SetCacheContext(AppSettings settings, String suburb, Date dateOfFuel) {
         m_fuelCacheParam.m_cachedFuelType = settings.GetFuelType();
         m_fuelCacheParam.m_cachedIncludeSurroundings = settings.IncludeSurroundings();
         m_fuelCacheParam.m_colesVoucher = settings.m_colesDiscount;
         m_fuelCacheParam.m_wwsVoucher = settings.m_wwsDiscount;
         m_fuelCacheParam.m_cachedSuburb = suburb;
-        m_cachedFuelInfo = null;
+        m_fuelCacheParam.m_cachedDay = TimeUtil.GetDayFromDate(dateOfFuel);
     }
 
-    public void CacheFuelInfo(List<FuelInfo> fuelInfo) {
+    public void CacheFuelInfo(AppSettings settings, String suburb, Date dayOfFuel, List<FuelInfo> fuelInfo) {
         m_cachedFuelInfo = fuelInfo;
-        m_fuelCacheParam.m_cachedDay = TimeUtil.GetCurDay();
+        SetCacheContext(settings, suburb, dayOfFuel);
     }
 
-    public boolean HitCache(AppSettings settings, String suburb) {
-        boolean hit = m_fuelCacheParam.HitCache(settings, suburb);
+    public boolean HitCache(AppSettings settings, String suburb, Date dayOfFuel) {
+        boolean hit = m_fuelCacheParam.HitCache(settings, suburb, dayOfFuel);
         hit &= m_cachedFuelInfo != null && m_cachedFuelInfo.size() != 0;
         return hit;
     }

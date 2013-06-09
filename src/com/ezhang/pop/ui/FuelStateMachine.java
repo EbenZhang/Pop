@@ -1,24 +1,27 @@
 package com.ezhang.pop.ui;
 
-import java.util.*;
-
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-
 import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
+import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.model.*;
 import com.ezhang.pop.network.RequestFactory;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class FuelStateMachine extends Observable implements RequestListener {
 
@@ -44,16 +47,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout
 	}
 
-    /**
-     * We will save the fuel distance info items and restore them when killed by the system (Such as rotation and switching between apps)
-     * */
-    private static final String SAVED_FUEL_INFO_ITEMS = "com.ezhang.pop.saved.fuel.info.items";
-    /**
-     * We will save the fuel distance info items and restore them when killed by the system (Such as rotation and switching between apps)
-     * */
-    private static final String SAVED_FUEL_DISTANCE_INFO_ITEMS = "com.ezhang.pop.saved.fuel.distance.info.items";
-
-
     StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
 			EmState.Start);
 	public List<FuelDistanceItem> m_fuelDistanceItems = new ArrayList<FuelDistanceItem>();
@@ -70,12 +63,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	Handler m_timeoutHandler = new TimerHandler(this);
 	AppSettings m_settings = null;
 
-    FuelInfoCache m_fuelInfoCache = new FuelInfoCache();
-    FuelDistanceInfoCache m_fuelDistanceCached = new FuelDistanceInfoCache();
+    CacheManager m_cacheManager = new CacheManager();
 
     EmState m_lastState = EmState.Invalid;
     boolean m_fuelInfoChanged = false;
     boolean m_fuelDistanceInfoChanged = false;
+
+    private Date m_dateOfFuel = new Date();
 
 	public FuelStateMachine(RequestManager reqManager,
 			LocationManager locationManager, AppSettings settings) {
@@ -110,10 +104,10 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	public void Refresh() {
-		this.m_stateMachine.HandleEvent(EmEvent.Refresh, null);
+        this.m_stateMachine.HandleEvent(EmEvent.Refresh, null);
 	}
 
-	private void StartTimer(int millSeconds) {
+    private void StartTimer(int millSeconds) {
 		StopTimer();
 
 		if (m_timer == null) {
@@ -213,7 +207,17 @@ public class FuelStateMachine extends Observable implements RequestListener {
 					public void PerformAction(Bundle param) {
                         List<FuelInfo> fuelInfo = param
                                 .getParcelableArrayList(RequestFactory.BUNDLE_FUEL_DATA);
-                        OnFuelInfoReceived(fuelInfo);
+                        String publishDate = param
+                                .getString(RequestFactory.BUNDLE_FUEL_INFO_PUBLISH_DATE);
+
+                        Date publishDay = new Date();
+                        try {
+                            DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                            publishDay = format.parse(publishDate);
+                        }catch (ParseException ex){
+                            ex.printStackTrace();
+                        }
+                        OnFuelInfoReceived(fuelInfo, publishDay);
 					}
 				});
 
@@ -311,7 +315,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
         RequestFuelInfo();
     }
 
-    private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList) {
+    private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList, Date dayOfFuel) {
         UpdateFuelInfoList(fuelInfoList);
         if (m_fuelInfoList.size() != 0) {
             RequestDistanceMatrix(m_fuelInfoList);
@@ -319,7 +323,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
             m_stateMachine.SetState(EmState.DistanceReceived);
         }
 
-        m_fuelInfoCache.CacheFuelInfo(m_fuelInfoList);
+        m_cacheManager.CacheFuelInfo(m_settings, m_suburb, dayOfFuel, m_fuelInfoList);
         Notify();
     }
 
@@ -331,7 +335,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
     }
 
 	private void OnDistanceMatrixReceived(DistanceMatrix distanceMatrix) {
-		m_fuelDistanceItems.clear();
+		m_fuelDistanceItems = new ArrayList<FuelDistanceItem>();
         m_fuelDistanceInfoChanged = true;
 		int i = 0;
 		for (DistanceMatrixItem distanceItem : distanceMatrix
@@ -364,7 +368,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			m_fuelDistanceItems.add(item);
 			i++;
 		}
-        m_fuelDistanceCached.CacheFuelInfo(m_fuelDistanceItems);
+        m_cacheManager.CacheFuelDistanceInfo(m_settings, m_suburb, m_address, m_dateOfFuel, m_fuelDistanceItems);
 		Notify();
 	}
 
@@ -405,24 +409,25 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void RequestFuelInfo() {
-        if(m_fuelInfoCache.HitCache(m_settings, m_suburb)){
+        List<FuelInfo> cachedFuel = m_cacheManager.HitFuelInfoCache(m_settings, m_suburb, m_dateOfFuel);
+        if(cachedFuel != null){
             m_stateMachine.SetState(EmState.FuelInfoReceived);
-            OnFuelInfoReceived(m_fuelInfoCache.m_cachedFuelInfo);
+            OnFuelInfoReceived(cachedFuel, m_dateOfFuel);
             return;
         }
 		StartTimer(5000);
 		Request req = RequestFactory.GetFuelInfoRequest(m_suburb,
-                m_settings.IncludeSurroundings(), m_settings.GetFuelType());
-        m_fuelInfoCache.SetCacheContext(m_settings, m_suburb);
+                m_settings.IncludeSurroundings(), m_settings.GetFuelType(), this.m_dateOfFuel);
 		m_restReqManager.execute(req, this);
 	}
 
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
-        if (m_fuelDistanceCached.HitCache(m_settings, m_suburb, m_address)){
+        List<FuelDistanceItem> cached = m_cacheManager.HitFuelDistanceCache(m_settings, m_suburb, m_address, m_dateOfFuel);
+        if (cached != null){
             m_stateMachine.SetState(EmState.DistanceReceived);
-            if (m_fuelDistanceItems != m_fuelDistanceCached.m_cachedFuelDistanceInfo)
+            if (m_fuelDistanceItems != cached)
             {
-                m_fuelDistanceItems = m_fuelDistanceCached.m_cachedFuelDistanceInfo;
+                m_fuelDistanceItems = cached;
             }
             return;
         }
@@ -447,7 +452,6 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			src = this.m_address.replace(' ', '+');
 		}
 		StartTimer(5000);
-        m_fuelDistanceCached.SetCacheContext(m_settings, m_suburb, m_address);
 		Request req = RequestFactory
 				.GetDistanceMatrixRequest(src, destinations);
 		m_restReqManager.execute(req, this);
@@ -515,12 +519,27 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
     public void RestoreFromSaveInstanceState(Bundle savedInstanceState){
-        m_fuelInfoCache = savedInstanceState.getParcelable(SAVED_FUEL_INFO_ITEMS);
-        m_fuelDistanceCached = savedInstanceState.getParcelable(SAVED_FUEL_DISTANCE_INFO_ITEMS);
+        m_cacheManager.RestoreFromSaveInstanceState(savedInstanceState);
     }
 
     public void SaveInstanceState(Bundle outState){
-        outState.putParcelable(SAVED_FUEL_INFO_ITEMS, m_fuelInfoCache);
-        outState.putParcelable(SAVED_FUEL_DISTANCE_INFO_ITEMS, m_fuelDistanceCached);
+        m_cacheManager.SaveInstanceState(outState);
+    }
+
+    public void Refresh(int day) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(m_dateOfFuel);
+        cal.add(Calendar.DAY_OF_MONTH, day);
+        Date newDate = cal.getTime();
+        float days = TimeUtil.DaysBetween(new Date(), newDate);
+        if (days < -8 || days > 1) {
+            return;
+        }
+        m_dateOfFuel = newDate;
+        this.Refresh();
+    }
+
+    public Date GetDateOfFuel() {
+        return m_dateOfFuel;
     }
 }

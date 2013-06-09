@@ -6,6 +6,7 @@ import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.settings.AppSettings;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,26 +25,26 @@ public class FuelDistanceInfoCache implements Parcelable {
         in.readList(m_cachedFuelDistanceInfo, FuelDistanceItem.class.getClassLoader());
         m_address = in.readString();
     }
-    public void SetCacheContext(AppSettings settings, String suburb, String address) {
+    private void SetCacheContext(AppSettings settings, String suburb, String address, Date dayOfFuel) {
         m_fuelCacheParam.m_cachedFuelType = settings.GetFuelType();
         m_fuelCacheParam.m_cachedIncludeSurroundings = settings.IncludeSurroundings();
         m_fuelCacheParam.m_colesVoucher = settings.m_colesDiscount;
         m_fuelCacheParam.m_wwsVoucher = settings.m_wwsDiscount;
         m_fuelCacheParam.m_cachedSuburb = suburb;
-        m_cachedFuelDistanceInfo = null;
+        m_fuelCacheParam.m_cachedDay = TimeUtil.GetDayFromDate(dayOfFuel);
         m_address = address;
     }
 
-    public void CacheFuelInfo(List<FuelDistanceItem> fuelDistanceItems) {
+    public void CacheFuelInfo(AppSettings settings, String suburb, String address, Date dayOfFuel, List<FuelDistanceItem> fuelDistanceItems) {
         m_cachedFuelDistanceInfo = fuelDistanceItems;
-        m_fuelCacheParam.m_cachedDay = TimeUtil.GetCurDay();
+        SetCacheContext(settings, suburb, address, dayOfFuel);
     }
 
-    public boolean HitCache(AppSettings settings, String suburb, String address) {
-        boolean hit = m_fuelCacheParam.HitCache(settings, suburb);
-        hit &= m_cachedFuelDistanceInfo != null && m_cachedFuelDistanceInfo.size() != 0;
-        hit &= m_address != null && address.equalsIgnoreCase(m_address);
-        return hit;
+    public boolean HitCache(AppSettings settings, String suburb, String address, Date dayOfFuel) {
+            boolean hit = m_fuelCacheParam.HitCache(settings, suburb, dayOfFuel);
+            hit &= m_cachedFuelDistanceInfo != null && m_cachedFuelDistanceInfo.size() != 0;
+            hit &= m_address != null && address.equalsIgnoreCase(m_address);
+            return hit;
     }
 
     @Override

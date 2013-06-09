@@ -1,12 +1,20 @@
 package com.ezhang.pop.ui;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Observable;
-import java.util.Observer;
-
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.drawable.AnimationDrawable;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.view.*;
 import android.widget.*;
+import android.widget.AdapterView.OnItemClickListener;
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
@@ -17,25 +25,12 @@ import com.ezhang.pop.settings.AppSettings;
 import com.ezhang.pop.settings.SettingsActivity;
 import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
 import com.ezhang.pop.ui.FuelStateMachine.EmState;
+import com.ezhang.pop.utils.DayOfWeek;
 
-import android.location.LocationManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.drawable.AnimationDrawable;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView.OnItemClickListener;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
-public class MainActivity extends Activity implements Observer {
+public class MainActivity extends Activity implements Observer, IGestureHandler{
     /**
      * There's no need to continue if switched to another activity
      */
@@ -59,6 +54,7 @@ public class MainActivity extends Activity implements Observer {
     private AlertDialog m_networkAlertDlg = null;
     private AlertDialog m_locationAccessDlg = null;
     private AlertDialog m_gpsOrCustomLocationDlg = null;
+    private GestureDetector m_gestureDetector;
 
     /**
      * The user will be required to choose the location provider type: location service or set the location manually.
@@ -84,6 +80,8 @@ public class MainActivity extends Activity implements Observer {
 
         InitFuelDistanceItemListView();
         m_settings = new AppSettings(this);
+
+        m_gestureDetector = new GestureDetector(this, new GestureListener(this));
     }
 
     private void InitFuelDistanceItemListView() {
@@ -455,7 +453,11 @@ public class MainActivity extends Activity implements Observer {
         SwitchToStopWaiting();
 
         if (this.m_fuelInfoList.size() != 0) {
-            ShowStatusText("Completed");
+            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+            Date d = this.m_fuelStateMachine.GetDateOfFuel();
+            String dateOfFuel = f.format(d);
+            ShowStatusText(String.format("Showing price for %s %s", DayOfWeek.Get(d), dateOfFuel));
+            this.m_fuelDistanceItemlistView.smoothScrollToPosition(0);
         } else {
             ShowStatusText("Unfortunately, no fuel info was found");
         }
@@ -526,10 +528,30 @@ public class MainActivity extends Activity implements Observer {
 
     private void ShowStatusText(String text) {
         if (m_toast == null) {
-            m_toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+            m_toast = Toast.makeText(this, text, Toast.LENGTH_LONG);
         } else {
             m_toast.setText(text);
         }
         m_toast.show();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        boolean consumed = m_gestureDetector.onTouchEvent(event);
+        if(!consumed)
+        {
+            return super.dispatchTouchEvent(event);
+        }
+        return consumed;
+    }
+
+    @Override
+    public void GestureToLeft() {
+        this.m_fuelStateMachine.Refresh(1);
+    }
+
+    @Override
+    public void GestureToRight() {
+        this.m_fuelStateMachine.Refresh(-1);
     }
 }

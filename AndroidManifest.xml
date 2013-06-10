@@ -47,6 +47,8 @@
             android:name="com.ezhang.pop.ui.CustomLocationActivity"
             android:label="@string/title_activity_custom_location" >
         </activity>
+        <activity android:name=".ui.HelpActivity"
+                  android:label="@string/help"/>
     </application>
 
 </manifest>

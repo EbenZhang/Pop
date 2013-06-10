@@ -116,6 +116,11 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         this.startActivity(intent);
     }
 
+    public void OnHelpClicked(View v) {
+        Intent intent = new Intent(this, HelpActivity.class);
+        this.startActivity(intent);
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

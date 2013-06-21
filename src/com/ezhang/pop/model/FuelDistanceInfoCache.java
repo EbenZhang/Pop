@@ -15,7 +15,7 @@ import java.util.List;
 public class FuelDistanceInfoCache implements Parcelable {
     public List<FuelDistanceItem> m_cachedFuelDistanceInfo;
     private FuelCacheParam m_fuelCacheParam = new FuelCacheParam();
-    String m_address = null;
+    private String m_address = null;
 
     public FuelDistanceInfoCache(){
     }

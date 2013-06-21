@@ -1,12 +1,9 @@
 package com.ezhang.pop.RequestOperations;
 
-import com.ezhang.pop.network.RequestFactory;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.os.Bundle;
 
+import com.ezhang.pop.network.RequestFactory;
 import com.foxykeep.datadroid.exception.ConnectionException;
 import com.foxykeep.datadroid.exception.DataException;
 import com.foxykeep.datadroid.network.NetworkConnection;
@@ -14,6 +11,9 @@ import com.foxykeep.datadroid.network.NetworkConnection.ConnectionResult;
 import com.foxykeep.datadroid.network.NetworkConnection.Method;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.service.RequestService.Operation;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 /**
  * Query the current address based on the geo location via google maps
@@ -72,6 +72,7 @@ public class CurrentAddressQueryOperation implements Operation {
 				}
 			}
 		} catch (Exception ex) {
+            ex.printStackTrace();
 		}
 		Bundle bundle = new Bundle();
 		bundle.putString(RequestFactory.BUNDLE_CUR_SUBURB_DATA, suburb);

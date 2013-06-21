@@ -1,13 +1,5 @@
 package com.ezhang.pop.settings;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import com.ezhang.pop.R;
-import com.ezhang.pop.core.ICallable;
-import com.ezhang.pop.core.StringUtils;
-
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +10,14 @@ import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+
+import com.ezhang.pop.R;
+import com.ezhang.pop.core.ICallable;
+import com.ezhang.pop.core.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class AppSettings {
     private static final String HAS_DISCOUNT_SETTINGS = "key.has.discount.settings";
@@ -30,7 +30,7 @@ public class AppSettings {
     private final Context m_context;
     public int m_colesDiscount = 8;
     public int m_wwsDiscount = 8;
-    SharedPreferences m_settings = null;
+    private SharedPreferences m_settings = null;
     private AlertDialog m_discountSettingsDlg;
     private boolean m_isFirstRun = false;
 

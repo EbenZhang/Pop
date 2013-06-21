@@ -18,17 +18,6 @@ import com.ezhang.pop.RequestOperations.FuelInfoOperation;
  * @author Foxykeep
  */
 public final class RequestService extends com.foxykeep.datadroid.service.RequestService {
-	
-	@Override  
-    public void onCreate() {  
-        super.onCreate();  
-    }
-	
-	@Override  
-    public void onStart(Intent intent, int startId) {  
-        super.onStart(intent, startId);
-	}
-
     // TODO by default only one concurrent worker thread will be used. If you want to change that,
     // override the getMaximumNumberOfThreads() method
 	@Override

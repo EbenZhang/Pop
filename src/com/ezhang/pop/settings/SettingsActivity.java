@@ -13,9 +13,9 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.view.MenuItem;
 
-import java.util.List;
-
 import com.ezhang.pop.R;
+
+import java.util.List;
 
 /**
  * A {@link PreferenceActivity} that presents a set of application settings. On
@@ -230,7 +230,7 @@ public class SettingsActivity extends PreferenceActivity {
 	 * activity is showing a two-pane settings UI.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class DiscountPreferenceFragment extends PreferenceFragment {
+	private static class DiscountPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
@@ -250,7 +250,7 @@ public class SettingsActivity extends PreferenceActivity {
 	 * activity is showing a two-pane settings UI.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class SuburbsPreferenceFragment extends PreferenceFragment {
+	private static class SuburbsPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
@@ -259,7 +259,7 @@ public class SettingsActivity extends PreferenceActivity {
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static class FueltypePreferenceFragment extends PreferenceFragment {
+	private static class FueltypePreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);

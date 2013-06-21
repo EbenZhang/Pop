@@ -34,6 +34,4 @@
     <string name="discount_settings_summary">We can take your wws and coles voucher into consideration when calculating the fuel price.</string>
     <string name="fueltype_settings">Fuel Type</string>
     <string name="fueltype_settings_key">key.fueltype</string>
-    <string name="fueltype_settings_summary">Select your fuel type</string>
-
 </resources>

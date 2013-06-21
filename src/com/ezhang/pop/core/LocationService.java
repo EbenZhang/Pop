@@ -12,9 +12,8 @@ public class LocationService {
 		criteria.setBearingRequired(false);
 		criteria.setCostAllowed(true);
 		criteria.setPowerRequirement(Criteria.POWER_LOW);
-	
-		String provider = locationManager.getBestProvider(criteria, true);
-		return provider;
+
+		return locationManager.getBestProvider(criteria, true);
 	}
 
 }

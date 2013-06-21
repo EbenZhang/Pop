@@ -1,17 +1,7 @@
 package com.ezhang.pop.ui;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import android.widget.*;
-import com.ezhang.pop.R;
-import com.ezhang.pop.core.LocationSpliter;
-import com.ezhang.pop.core.NotEmptyValidator;
-import com.ezhang.pop.settings.AppSettings;
-
-import android.os.Bundle;
 import android.app.Activity;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
@@ -20,17 +10,32 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
 import android.view.View.OnTouchListener;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
+
+import com.ezhang.pop.R;
+import com.ezhang.pop.core.LocationSpliter;
+import com.ezhang.pop.core.NotEmptyValidator;
+import com.ezhang.pop.settings.AppSettings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class CustomLocationActivity extends Activity {
 	private static final int MAX_HISTORY_LOCATION = 4;
 
-	RadioButton m_btnGPS = null;
+	private RadioButton m_btnGPS = null;
 
-	int m_selectedHistoryLocation = 0;
+	private int m_selectedHistoryLocation = 0;
 
-	List<String> m_locations = null;
+	private List<String> m_locations = null;
 
-	AppSettings m_settings = null;
+	private AppSettings m_settings = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -188,8 +193,7 @@ public class CustomLocationActivity extends Activity {
 	}
 
 	private String GenerateNewLocationString(String streetAddr, String suburb) {
-		String newLocation = LocationSpliter.Combine(streetAddr, suburb);
-		return newLocation;
+		return LocationSpliter.Combine(streetAddr, suburb);
 	}
 
 	private void ReorderHistoryLocations() {

@@ -58,27 +58,27 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		Invalid, GeoLocationEvent, SuburbEvent, FuelInfoEvent, DistanceEvent, Refresh, Timeout
 	}
 
-    StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
+    private final StateMachine<EmState, EmEvent> m_stateMachine = new StateMachine<EmState, EmEvent>(
 			EmState.Start);
 	public List<FuelDistanceItem> m_fuelDistanceItems = new ArrayList<FuelDistanceItem>();
 	private List<FuelInfo> m_fuelInfoList = null;
-	private RequestManager m_restReqManager;
-	private LocationManager m_locationManager;
-	public Location m_location = null;
+	private final RequestManager m_restReqManager;
+	private final LocationManager m_locationManager;
+	private Location m_location = null;
 	public String m_suburb = null;
 	public String m_address = null;
 	private String m_provider = null;
 	public EmEvent m_timeoutEvent = EmEvent.Invalid;
-	Timer m_timer = null;
-	TimerTask m_timerTask = null;
-	Handler m_timeoutHandler = new TimerHandler(this);
-	AppSettings m_settings = null;
+	private Timer m_timer = null;
+    private TimerTask m_timerTask = null;
+    private final Handler m_timeoutHandler = new TimerHandler(this);
+    private AppSettings m_settings = null;
 
-    CacheManager m_cacheManager = new CacheManager();
+    private final CacheManager m_cacheManager = new CacheManager();
 
-    EmState m_lastState = EmState.Invalid;
-    boolean m_fuelInfoChanged = false;
-    boolean m_fuelDistanceInfoChanged = false;
+    private EmState m_lastState = EmState.Invalid;
+    private boolean m_fuelInfoChanged = false;
+    private boolean m_fuelDistanceInfoChanged = false;
 
     private Date m_dateOfFuel = new Date();
 

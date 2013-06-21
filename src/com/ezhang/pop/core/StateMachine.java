@@ -1,11 +1,11 @@
 package com.ezhang.pop.core;
 
+import android.os.Bundle;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import android.os.Bundle;
 
 public class StateMachine<EmState extends Enum<EmState>, EmEvent extends Enum<EmEvent>> {
 	public interface EventAction

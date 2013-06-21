@@ -2,14 +2,14 @@ package com.ezhang.pop.ui;
 
 import android.view.MotionEvent;
 
-public class GestureListener implements android.view.GestureDetector.OnGestureListener {
+class GestureListener implements android.view.GestureDetector.OnGestureListener {
     private static final int SWIPE_MAX_OFF_PATH = 100;
 
     private static final int SWIPE_MIN_DISTANCE = 100;
 
     private static final int SWIPE_THRESHOLD_VELOCITY = 100;
 
-    private IGestureHandler m_handler;
+    private final IGestureHandler m_handler;
 
     public GestureListener(IGestureHandler handler) {
         m_handler = handler;

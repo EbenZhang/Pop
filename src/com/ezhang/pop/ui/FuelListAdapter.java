@@ -1,11 +1,5 @@
 package com.ezhang.pop.ui;
 
-import java.util.ArrayList;
-import java.util.Locale;
-
-import com.ezhang.pop.R;
-import com.ezhang.pop.model.FuelDistanceItem;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +7,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-public class FuelListAdapter extends BaseAdapter {
+import com.ezhang.pop.R;
+import com.ezhang.pop.model.FuelDistanceItem;
+
+import java.util.ArrayList;
+import java.util.Locale;
+
+class FuelListAdapter extends BaseAdapter {
 	private static ArrayList<FuelDistanceItem> fuelDistaceList;
 	private LayoutInflater mInflater;
 

@@ -9,18 +9,28 @@ import android.graphics.drawable.AnimationDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.*;
-import android.widget.*;
+import android.view.GestureDetector;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.model.FuelDistanceItem;
-import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
 import com.ezhang.pop.settings.SettingsActivity;
@@ -29,7 +39,14 @@ import com.ezhang.pop.ui.FuelStateMachine.EmState;
 import com.ezhang.pop.utils.DayOfWeek;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Observable;
+import java.util.Observer;
 
 public class MainActivity extends Activity implements Observer, IGestureHandler{
     /**
@@ -46,7 +63,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private RequestManager m_reqManager;
     private LocationManager m_locationManager;
     private FuelStateMachine m_fuelStateMachine;
-    private ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
+    private final ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
     private ListView m_fuelDistanceItemlistView = null;
 
     private Button m_refreshButton = null;
@@ -94,11 +111,17 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
                                     long id) {
                 Object o = m_fuelDistanceItemlistView.getItemAtPosition(position);
                 FuelDistanceItem fullObject = (FuelDistanceItem) o;
-                NavigationLaunch launch = new NavigationLaunch(
-                        MainActivity.this, fullObject.latitude, fullObject.longitude);
-                launch.Launch();
+                LaunchNavigationApp(MainActivity.this, fullObject.latitude, fullObject.longitude);
             }
         });
+    }
+
+    private void LaunchNavigationApp(Context ctx, String dstLatitude, String dstLongitude) {
+        String uriString = String.format("geo:0,0?q=%s,%s", dstLatitude,
+                dstLongitude);
+        Uri uri = Uri.parse(uriString);
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
+        ctx.startActivity(intent);
     }
 
     public void OnRefreshClicked(View v) {
@@ -367,11 +390,6 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
 
         // Showing Alert Message
         m_networkAlertDlg = alertDialogBuilder.create();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     /**

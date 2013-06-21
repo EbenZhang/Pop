@@ -6,12 +6,17 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+
 import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
-import com.ezhang.pop.core.TimeUtil;
-import com.ezhang.pop.model.*;
+import com.ezhang.pop.model.CacheManager;
+import com.ezhang.pop.model.DestinationList;
+import com.ezhang.pop.model.DistanceMatrix;
+import com.ezhang.pop.model.DistanceMatrixItem;
+import com.ezhang.pop.model.FuelDistanceItem;
+import com.ezhang.pop.model.FuelInfo;
 import com.ezhang.pop.network.RequestFactory;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
@@ -21,7 +26,13 @@ import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Observable;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class FuelStateMachine extends Observable implements RequestListener {
 
@@ -211,11 +222,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
                                 .getString(RequestFactory.BUNDLE_FUEL_INFO_PUBLISH_DATE);
 
                         Date publishDay = new Date();
-                        try {
-                            DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-                            publishDay = format.parse(publishDate);
-                        }catch (ParseException ex){
-                            ex.printStackTrace();
+                        if(publishDate != null && !publishDate.equals("")){
+                            try {
+                                DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                                publishDay = format.parse(publishDate);
+                            }catch (ParseException ex){
+                                ex.printStackTrace();
+                            }
                         }
                         OnFuelInfoReceived(fuelInfo, publishDay);
 					}
@@ -526,20 +539,10 @@ public class FuelStateMachine extends Observable implements RequestListener {
         m_cacheManager.SaveInstanceState(outState);
     }
 
-    public void Refresh(int day) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(m_dateOfFuel);
-        cal.add(Calendar.DAY_OF_MONTH, day);
-        Date newDate = cal.getTime();
-        float days = TimeUtil.DaysBetween(new Date(), newDate);
-        if (days < -8 || days > 1) {
-            return;
-        }
-        m_dateOfFuel = newDate;
-        this.Refresh();
-    }
-
     public Date GetDateOfFuel() {
         return m_dateOfFuel;
+    }
+    public void SetDateOfFuel(Date newDate) {
+        m_dateOfFuel = newDate;
     }
 }

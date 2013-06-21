@@ -18,6 +18,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
+import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.navigation.NavigationLaunch;
 import com.ezhang.pop.network.RequestManager;
@@ -382,7 +383,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     @Override
     public void update(Observable arg0, Object arg1) {
         if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceReceived) {
-            OnDistanceInfoReceived();
+            OnDistanceInfoReceived(this.m_fuelStateMachine.m_fuelDistanceItems);
         }
         if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbReceived) {
             OnSuburbReceived();
@@ -448,24 +449,28 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         SwitchToWaitingStatus();
     }
 
-    private void OnDistanceInfoReceived() {
+    private void OnDistanceInfoReceived(List<FuelDistanceItem> items) {
         ShowCurrentAddr();
         this.m_fuelInfoList.clear();
         this.m_fuelInfoList
-                .addAll(this.m_fuelStateMachine.m_fuelDistanceItems);
+                .addAll(items);
         Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
         ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
         SwitchToStopWaiting();
 
         if (this.m_fuelInfoList.size() != 0) {
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-            Date d = this.m_fuelStateMachine.GetDateOfFuel();
-            String dateOfFuel = f.format(d);
-            ShowStatusText(String.format("Showing price for %s %s", DayOfWeek.Get(d), dateOfFuel));
+            DisplayShowingPriceForDate();
             this.m_fuelDistanceItemlistView.smoothScrollToPosition(0);
         } else {
             ShowStatusText("Unfortunately, no fuel info was found");
         }
+    }
+
+    private void DisplayShowingPriceForDate() {
+        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+        Date d = this.m_fuelStateMachine.GetDateOfFuel();
+        String dateOfFuel = f.format(d);
+        ShowStatusText(String.format("Showing price for %s %s", DayOfWeek.Get(d), dateOfFuel));
     }
 
     private void ShowCurrentAddr() {
@@ -552,11 +557,34 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
 
     @Override
     public void GestureToLeft() {
-        this.m_fuelStateMachine.Refresh(1);
+        // tomorrow's price is available after 2pm (+8)
+        Calendar cal = Calendar.getInstance();
+        boolean showingTodayPrice = TimeUtil.GetDayFromDate(cal.getTime()) == TimeUtil.GetDayFromDate(m_fuelStateMachine.GetDateOfFuel());
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        if(showingTodayPrice && hour < 14){
+            ShowStatusText("Price for tomorrow is only available after 2pm");
+            return;
+        }
+        RefreshWithDayOffset(1);
+    }
+
+    private void RefreshWithDayOffset(int dayOffset) {
+        Calendar cal = Calendar.getInstance();
+        Date currentShowing = m_fuelStateMachine.GetDateOfFuel();
+        cal.setTime(currentShowing);
+        cal.add(Calendar.DAY_OF_MONTH, dayOffset);
+        Date newDate = cal.getTime();
+        float days = TimeUtil.DaysBetween(new Date(), newDate);
+        if (days < -8 || days > 1) {
+            OnDistanceInfoReceived(new ArrayList<FuelDistanceItem>());
+            return;
+        }
+        m_fuelStateMachine.SetDateOfFuel(newDate);
+        this.m_fuelStateMachine.Refresh();
     }
 
     @Override
     public void GestureToRight() {
-        this.m_fuelStateMachine.Refresh(-1);
+        RefreshWithDayOffset(-1);
     }
 }

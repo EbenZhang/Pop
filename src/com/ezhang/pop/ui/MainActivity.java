@@ -560,6 +560,10 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         } else {
             m_toast.setText(text);
         }
+        if(m_fuelStateMachine != null && m_fuelStateMachine.IsPaused()){
+            m_toast.cancel();
+            return;
+        }
         m_toast.show();
     }
 
@@ -604,5 +608,11 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     @Override
     public void GestureToRight() {
         RefreshWithDayOffset(-1);
+    }
+
+    @Override
+    protected void onPause(){
+        m_fuelStateMachine.Pause();
+        super.onPause();
     }
 }

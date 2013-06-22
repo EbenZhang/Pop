@@ -35,6 +35,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class FuelStateMachine extends Observable implements RequestListener {
+    private boolean m_paused = false;
 
     private static class TimerHandler extends Handler {
 		FuelStateMachine m_fuelStateMachine = null;
@@ -115,6 +116,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	public void Refresh() {
+        m_paused = false;
         this.m_stateMachine.HandleEvent(EmEvent.Refresh, null);
 	}
 
@@ -155,6 +157,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestSuburb();
 						Notify();
 					}
@@ -163,7 +166,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.Start, EmState.Start,
 				EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
-						Start();
+                        StopTimer();
+                        Start();
 					}
 				});
 
@@ -178,13 +182,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.Timeout, EmState.Start,
 				EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
-						Start();
+                        StopTimer();
+                        Start();
 					}
 				});
 
 		m_stateMachine.AddTransition(EmState.GeoLocationReceived,
 				EmState.SuburbReceived, EmEvent.SuburbEvent, new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
                         OnSuburbInfoReceived(param);
 					}
 				});
@@ -201,6 +207,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.GeoLocationReceived, EmEvent.Refresh,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						if (m_suburb == null) {
 							RequestSuburb();
 							Notify();
@@ -216,6 +223,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.FuelInfoReceived, EmEvent.FuelInfoEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
                         List<FuelInfo> fuelInfo = param
                                 .getParcelableArrayList(RequestFactory.BUNDLE_FUEL_DATA);
                         String publishDate = param
@@ -237,6 +245,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.SuburbReceived,
 				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestFuelInfo();
 						Notify();
 					}
@@ -246,6 +255,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestSuburb();
 						Notify();
 					}
@@ -272,6 +282,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.FuelInfoReceived,
 				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestFuelInfo();
 						Notify();
 					}
@@ -281,6 +292,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestSuburb();
 						Notify();
 					}
@@ -298,6 +310,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				EmState.GeoLocationReceived, EmEvent.GeoLocationEvent,
 				new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestSuburb();
 						Notify();
 					}
@@ -306,6 +319,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		m_stateMachine.AddTransition(EmState.DistanceReceived,
 				EmState.SuburbReceived, EmEvent.Refresh, new EventAction() {
 					public void PerformAction(Bundle param) {
+                        StopTimer();
 						RequestFuelInfo();
 						Notify();
 					}
@@ -416,12 +430,18 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void RequestSuburb() {
+        if(this.m_paused){
+            return;
+        }
 		StartTimer(5000);
 		Request req = RequestFactory.GetCurrentSuburbRequest(m_location);
 		m_restReqManager.execute(req, this);
 	}
 
 	private void RequestFuelInfo() {
+        if(this.m_paused){
+            return;
+        }
         List<FuelInfo> cachedFuel = m_cacheManager.HitFuelInfoCache(m_settings, m_suburb, m_dateOfFuel);
         if(cachedFuel != null){
             m_stateMachine.SetState(EmState.FuelInfoReceived);
@@ -435,6 +455,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
 	}
 
 	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
+        if(this.m_paused){
+            return;
+        }
         List<FuelDistanceItem> cached = m_cacheManager.HitFuelDistanceCache(m_settings, m_suburb, m_address, m_dateOfFuel);
         if (cached != null){
             m_stateMachine.SetState(EmState.DistanceReceived);
@@ -544,5 +567,13 @@ public class FuelStateMachine extends Observable implements RequestListener {
     }
     public void SetDateOfFuel(Date newDate) {
         m_dateOfFuel = newDate;
+    }
+
+    public void Pause() {
+        this.m_paused = true;
+    }
+
+    public boolean IsPaused(){
+        return this.m_paused;
     }
 }

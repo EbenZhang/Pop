@@ -49,19 +49,22 @@ public class AppSettings {
         boolean hasDiscountSettings = m_settings.getBoolean(
                 HAS_DISCOUNT_SETTINGS, false);
         if (hasDiscountSettings) {
-            String wwsDiscount = m_settings.getString(
-                    m_context.getString(R.string.wws_discount_settings), "8");
-            m_wwsDiscount = Integer.parseInt(wwsDiscount);
-
-            String colesDiscount = m_settings.getString(
-                    m_context.getString(R.string.coles_discount_settings), "8");
-
-            m_colesDiscount = Integer.parseInt(colesDiscount);
-
+            m_wwsDiscount = GetDiscount(R.string.wws_discount_settings, "0");
+            m_colesDiscount = GetDiscount(R.string.coles_discount_settings, "0");
             callable.Call(null);
         } else {
             ShowSettingsDialog(callable);
         }
+    }
+
+    private int GetDiscount(int key, String defaultDiscount) {
+        String disString = m_settings.getString(
+                m_context.getString(key), defaultDiscount);
+
+        if(disString.equals("")){
+            disString = defaultDiscount;
+        }
+        return Integer.parseInt(disString);
     }
 
     private void ShowSettingsDialog(final ICallable<Object, Object> callable) {
@@ -93,11 +96,16 @@ public class AppSettings {
                               final ICallable<Object, Object> callable) {
         String colesDiscount = ((EditText) view
                 .findViewById(R.id.coles_voucher)).getText().toString();
-
+        if(colesDiscount.equals("")){
+            colesDiscount = "0";
+        }
         m_colesDiscount = Integer.parseInt(colesDiscount);
 
         String wwsDiscount = ((EditText) view.findViewById(R.id.wws_voucher))
                 .getText().toString();
+        if(wwsDiscount.equals("")){
+            wwsDiscount = "0";
+        }
         m_wwsDiscount = Integer.parseInt(wwsDiscount);
 
         Editor editor = m_settings.edit();

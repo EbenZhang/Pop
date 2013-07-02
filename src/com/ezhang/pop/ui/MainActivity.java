@@ -611,8 +611,10 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     }
 
     @Override
-    protected void onPause(){
-        m_fuelStateMachine.Pause();
+    protected void onPause() {
+        if (m_fuelStateMachine != null) {
+            m_fuelStateMachine.Pause();
+        }
         super.onPause();
     }
 }

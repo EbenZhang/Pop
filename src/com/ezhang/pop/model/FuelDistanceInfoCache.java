@@ -60,6 +60,11 @@ public class FuelDistanceInfoCache implements Parcelable {
         }else{
             parcel.writeList(m_cachedFuelDistanceInfo);
         }
+        if(m_address != null){
+            parcel.writeString(m_address);
+        }else{
+            parcel.writeString("");
+        }
     }
 
     public static final Parcelable.Creator<FuelDistanceInfoCache> CREATOR = new Parcelable.Creator<FuelDistanceInfoCache>() {

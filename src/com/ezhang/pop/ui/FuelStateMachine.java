@@ -11,6 +11,7 @@ import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.StateMachine;
 import com.ezhang.pop.core.StateMachine.EventAction;
+import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.model.CacheManager;
 import com.ezhang.pop.model.DestinationList;
 import com.ezhang.pop.model.DistanceMatrix;
@@ -20,6 +21,7 @@ import com.ezhang.pop.model.FuelInfo;
 import com.ezhang.pop.network.RequestFactory;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
+import com.ezhang.pop.utils.PriceDate;
 import com.foxykeep.datadroid.requestmanager.Request;
 import com.foxykeep.datadroid.requestmanager.RequestManager.RequestListener;
 
@@ -81,7 +83,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
     private boolean m_fuelInfoChanged = false;
     private boolean m_fuelDistanceInfoChanged = false;
 
-    private Date m_dateOfFuel = new Date();
+    private PriceDate m_dateOfFuel = PriceDate.Today;
 
 	public FuelStateMachine(RequestManager reqManager,
 			LocationManager locationManager, AppSettings settings) {
@@ -395,12 +397,22 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			m_fuelDistanceItems.add(item);
 			i++;
 		}
-        m_cacheManager.CacheFuelDistanceInfo(m_settings, m_suburb, m_address, m_dateOfFuel, m_fuelDistanceItems);
+        m_cacheManager.CacheFuelDistanceInfo(m_settings, m_suburb, m_address, GetDate(m_dateOfFuel), m_fuelDistanceItems);
 		Notify();
 	}
 
-	@Override
-	public void onRequestFinished(Request request, Bundle resultData) {
+    private Date GetDate(PriceDate date) {
+        if (date == PriceDate.Tomorrow) {
+            return TimeUtil.Add(new Date(), 1);
+        } else if (date == PriceDate.Yesterday) {
+            return TimeUtil.Add(new Date(), -1);
+        }
+        return new Date();
+    }
+
+
+    @Override
+    public void onRequestFinished(Request request, Bundle resultData) {
 		if (request.getRequestType() == RequestFactory.REQ_TYPE_DISTANCE_MATRIX) {
 			this.m_stateMachine.HandleEvent(EmEvent.DistanceEvent, resultData);
             return;
@@ -442,15 +454,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
         if(this.m_paused){
             return;
         }
-        List<FuelInfo> cachedFuel = m_cacheManager.HitFuelInfoCache(m_settings, m_suburb, m_dateOfFuel);
+        List<FuelInfo> cachedFuel = m_cacheManager.HitFuelInfoCache(m_settings, m_suburb, GetDate(m_dateOfFuel));
         if(cachedFuel != null){
             m_stateMachine.SetState(EmState.FuelInfoReceived);
-            OnFuelInfoReceived(cachedFuel, m_dateOfFuel);
+            OnFuelInfoReceived(cachedFuel, GetDate(m_dateOfFuel));
             return;
         }
 		StartTimer(5000);
 		Request req = RequestFactory.GetFuelInfoRequest(m_suburb,
-                m_settings.IncludeSurroundings(), m_settings.GetFuelType(), this.m_dateOfFuel);
+                m_settings.IncludeSurroundings(), m_settings.GetFuelType(), this.m_dateOfFuel.toString());
 		m_restReqManager.execute(req, this);
 	}
 
@@ -458,7 +470,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
         if(this.m_paused){
             return;
         }
-        List<FuelDistanceItem> cached = m_cacheManager.HitFuelDistanceCache(m_settings, m_suburb, m_address, m_dateOfFuel);
+        List<FuelDistanceItem> cached = m_cacheManager.HitFuelDistanceCache(m_settings, m_suburb, m_address, GetDate(m_dateOfFuel));
         if (cached != null){
             m_stateMachine.SetState(EmState.DistanceReceived);
             if (m_fuelDistanceItems != cached)
@@ -562,10 +574,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
         m_cacheManager.SaveInstanceState(outState);
     }
 
-    public Date GetDateOfFuel() {
-        return m_dateOfFuel;
-    }
-    public void SetDateOfFuel(Date newDate) {
+    public void SetDateOfFuel(PriceDate newDate) {
         m_dateOfFuel = newDate;
     }
 

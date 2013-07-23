@@ -66,7 +66,7 @@ public class CurrentAddressQueryOperation implements Operation {
 						break;
 					}
 				}
-				if(suburb != "")
+				if(!suburb.equals(""))
 				{
 					break;
 				}

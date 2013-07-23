@@ -143,7 +143,7 @@ public class AppSettings {
 
     public List<String> GetHistoryLocations() {
         String customLocations = m_settings.getString(CUSTOM_LOCATION, "");
-        if (customLocations != "") {
+        if (!customLocations.equals("")) {
             return new ArrayList<String>(Arrays.asList(customLocations
                     .split(java.util.regex.Pattern.quote(LOCATION_SEP))));
         }

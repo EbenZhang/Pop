@@ -49,15 +49,13 @@ public class RequestFactory {
         return request;
     }
 
-	public static Request GetFuelInfoRequest(String m_suburb, boolean includeSurrounding, int fuelType, Date dateOfFuel) {
+	public static Request GetFuelInfoRequest(String m_suburb, boolean includeSurrounding, int fuelType, String dateOfFuel) {
 		Request request = new Request(REQ_TYPE_FUEL);
         request.setMemoryCacheEnabled(true);
         request.put(FuelInfoOperation.SUBURB, m_suburb);
         request.put(FuelInfoOperation.INCLUDE_SURROUNDING, includeSurrounding);
         request.put(FuelInfoOperation.FUEL_TYPE, fuelType);
-        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-        String date = f.format(dateOfFuel);
-        request.put(FuelInfoOperation.FUEL_DATE, date);
+        request.put(FuelInfoOperation.FUEL_DATE, dateOfFuel.toLowerCase());
         return request;
 	}
 }

@@ -19,4 +19,12 @@ public class TimeUtil {
         long millsPerDay = 1000 * 60 * 60 * 24;
         return (float)mSec / (float)millsPerDay;
     }
+
+    public static Date Add(Date base, int days){
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(base);
+        cal.add(Calendar.DAY_OF_MONTH, days);
+        return cal.getTime();
+    }
+
 }

@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
@@ -23,6 +24,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,13 +38,11 @@ import com.ezhang.pop.settings.AppSettings;
 import com.ezhang.pop.settings.SettingsActivity;
 import com.ezhang.pop.ui.FuelStateMachine.EmEvent;
 import com.ezhang.pop.ui.FuelStateMachine.EmState;
-import com.ezhang.pop.utils.DayOfWeek;
+import com.ezhang.pop.utils.PriceDate;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Observable;
@@ -73,6 +73,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private AlertDialog m_locationAccessDlg = null;
     private AlertDialog m_gpsOrCustomLocationDlg = null;
     private GestureDetector m_gestureDetector;
+    private TabHost m_tabCurDate;
 
     /**
      * The user will be required to choose the location provider type: location service or set the location manually.
@@ -81,11 +82,39 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private boolean m_locationTypeSelected = false;
     private Toast m_toast;
     private Bundle m_savedInstanceState;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+
+        m_tabCurDate = (TabHost)this.findViewById(R.id.tabHost);
+        m_tabCurDate.setup();
+        m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabToday").setContent(R.id.tabToday).setIndicator("Today"));
+        m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabTomorrow").setContent(R.id.tabTomorrow).setIndicator("Tomorrow"));
+        m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabYesterday").setContent(R.id.tabYesterday).setIndicator("Yesterday"));
+        m_tabCurDate.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
+            @Override
+            public void onTabChanged(String tabId) {
+                UpdateTabColor(m_tabCurDate);
+                if(m_fuelStateMachine == null){
+                    return;
+                }
+
+                int curTab = m_tabCurDate.getCurrentTab();
+                if(curTab == PriceDate.Tomorrow.ordinal()){
+                    // tomorrow's price is available after 2pm (+8)
+                    Calendar cal = Calendar.getInstance();
+                    int hour = cal.get(Calendar.HOUR_OF_DAY);
+                    if(hour < 14){
+                        ShowStatusText("Price for tomorrow is only available after 2pm");
+                    }
+                }
+                m_fuelStateMachine.SetDateOfFuel(PriceDate.values()[curTab]);
+                m_fuelStateMachine.Refresh();
+            }
+        });
+
+        m_tabCurDate.setCurrentTab(0);
 
         m_reqManager = RequestManager.from(this);
         m_refreshButton = (Button) findViewById(R.id.RefreshButton);
@@ -465,6 +494,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         ShowCurrentAddr();
         this.m_fuelInfoList.clear();
         SwitchToWaitingStatus();
+        UpdateTabColor(m_tabCurDate);
     }
 
     private void OnDistanceInfoReceived(List<FuelDistanceItem> items) {
@@ -477,23 +507,15 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         SwitchToStopWaiting();
 
         if (this.m_fuelInfoList.size() != 0) {
-            DisplayShowingPriceForDate();
             this.m_fuelDistanceItemlistView.smoothScrollToPosition(0);
         } else {
             ShowStatusText("Unfortunately, no fuel info was found");
         }
     }
 
-    private void DisplayShowingPriceForDate() {
-        SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-        Date d = this.m_fuelStateMachine.GetDateOfFuel();
-        String dateOfFuel = f.format(d);
-        ShowStatusText(String.format("Showing price for %s %s", DayOfWeek.Get(d), dateOfFuel));
-    }
-
     private void ShowCurrentAddr() {
         if (this.m_fuelStateMachine.m_suburb != null
-                && this.m_fuelStateMachine.m_suburb != "") {
+                && !m_fuelStateMachine.m_suburb.equals("")) {
             int indexOfSuburb = this.m_fuelStateMachine.m_address
                     .indexOf(this.m_fuelStateMachine.m_suburb);
             String addrWithoutSuburb = this.m_fuelStateMachine.m_address;
@@ -579,35 +601,18 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
 
     @Override
     public void GestureToLeft() {
-        // tomorrow's price is available after 2pm (+8)
-        Calendar cal = Calendar.getInstance();
-        boolean showingTodayPrice = TimeUtil.GetDayFromDate(cal.getTime()) == TimeUtil.GetDayFromDate(m_fuelStateMachine.GetDateOfFuel());
-        int hour = cal.get(Calendar.HOUR_OF_DAY);
-        if(showingTodayPrice && hour < 14){
-            ShowStatusText("Price for tomorrow is only available after 2pm");
-            return;
+        int curTab = m_tabCurDate.getCurrentTab();
+        if(curTab < 2){
+            m_tabCurDate.setCurrentTab(curTab + 1);
         }
-        RefreshWithDayOffset(1);
-    }
-
-    private void RefreshWithDayOffset(int dayOffset) {
-        Calendar cal = Calendar.getInstance();
-        Date currentShowing = m_fuelStateMachine.GetDateOfFuel();
-        cal.setTime(currentShowing);
-        cal.add(Calendar.DAY_OF_MONTH, dayOffset);
-        Date newDate = cal.getTime();
-        float days = TimeUtil.DaysBetween(new Date(), newDate);
-        if (days < -8 || days > 1) {
-            OnDistanceInfoReceived(new ArrayList<FuelDistanceItem>());
-            return;
-        }
-        m_fuelStateMachine.SetDateOfFuel(newDate);
-        this.m_fuelStateMachine.Refresh();
     }
 
     @Override
     public void GestureToRight() {
-        RefreshWithDayOffset(-1);
+        int curTab = m_tabCurDate.getCurrentTab();
+        if(curTab > 0){
+            m_tabCurDate.setCurrentTab(curTab - 1);
+        }
     }
 
     @Override
@@ -616,5 +621,18 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
             m_fuelStateMachine.Pause();
         }
         super.onPause();
+    }
+
+    //Change The Backgournd Color of Tabs
+    public void UpdateTabColor(TabHost tabhost) {
+
+        int cur = tabhost.getCurrentTab();
+        for (int i = 0; i < tabhost.getTabWidget().getChildCount(); i++) {
+            if (i == cur) {
+                continue;
+            }
+            tabhost.getTabWidget().getChildAt(i).setBackgroundColor(Color.WHITE); //unselected
+        }
+        tabhost.getTabWidget().getChildAt(cur).setBackgroundColor(Color.LTGRAY);
     }
 }

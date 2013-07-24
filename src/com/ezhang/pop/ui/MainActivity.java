@@ -241,12 +241,9 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
             }
         }
 
-        ShowStatusText("Waiting For Location Information");
-        SwitchToWaitingStatus();
-
         if (m_fuelStateMachine == null) {
             CreateStateMachine();
-        } else {
+        } else if(m_fuelInfoList.isEmpty()){
             StartStateMachine();
         }
     }
@@ -267,6 +264,8 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     }
 
     private void StartStateMachine() {
+        SwitchToWaitingStatus();
+        ShowStatusText("Waiting For Location Information");
         RestoreFromSavedInstance();
         m_fuelStateMachine.ToggleGPS(m_settings.UseGPSAsLocation());
         m_fuelStateMachine.Refresh();

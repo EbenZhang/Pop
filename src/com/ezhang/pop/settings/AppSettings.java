@@ -26,6 +26,7 @@ public class AppSettings {
     private static final String CUSTOM_LOCATION = "com.ezhang.pop.customlocations";
     private static final String LAST_SUBURB = "com.ezhang.pop.last.suburb";
     private static final String LOCATION_SEP = "||";
+    private static final String LAST_VIEW_IS_MAP = "com.ezhang.pop.last.view.map";
 
     private final Context m_context;
     public int m_colesDiscount = 8;
@@ -174,5 +175,15 @@ public class AppSettings {
 
     public boolean IsFirstRun() {
         return m_isFirstRun;
+    }
+
+    public boolean LastViewIsMap(){
+        return m_settings.getBoolean(LAST_VIEW_IS_MAP, false);
+    }
+
+    public void SetLastViewType(boolean isMapView){
+        Editor editor = m_settings.edit();
+        editor.putBoolean(LAST_VIEW_IS_MAP, isMapView);
+        editor.commit();
     }
 }

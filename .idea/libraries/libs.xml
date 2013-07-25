@@ -4,7 +4,8 @@
       <root url="jar://$PROJECT_DIR$/libs/GoogleAdMobAdsSdk-6.4.1.jar!/" />
       <root url="jar://$PROJECT_DIR$/libs/gson-2.2.3.jar!/" />
       <root url="jar://$PROJECT_DIR$/libs/datadroid.jar!/" />
-      <root url="jar://$PROJECT_DIR$/libs/android-support-v4.jar!/" />
+      <root url="jar://$APPLICATION_HOME_DIR$/sdk/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar!/" />
+      <root url="jar://$APPLICATION_HOME_DIR$/sdk/extras/android/support/v4/android-support-v4.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

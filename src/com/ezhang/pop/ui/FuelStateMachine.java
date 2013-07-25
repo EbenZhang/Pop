@@ -3,6 +3,7 @@ package com.ezhang.pop.ui;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -110,9 +111,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
 		}
 
 		if (!m_settings.UseGPSAsLocation()) {
-			m_address = this.m_settings.GetHistoryLocations().get(0);
-			m_suburb = LocationSpliter.Split(m_address).second;
-			this.m_stateMachine.SetState(EmState.SuburbReceived);
+            boolean isOnSimulator = false;//Build.FINGERPRINT.startsWith("generic");
+            if(!isOnSimulator) {
+                m_address = this.m_settings.GetHistoryLocations().get(0);
+                m_suburb = LocationSpliter.Split(m_address).second;
+            }else{
+                m_address = "288 wanneroo road, balcatta, wa";
+                m_suburb = "balcatta";
+            }
+            this.m_stateMachine.SetState(EmState.SuburbReceived);
 			this.Notify();
 		}
 	}
@@ -586,7 +593,9 @@ public class FuelStateMachine extends Observable implements RequestListener {
         return this.m_paused;
     }
 
-    public void ClearFuelInfo(){
-        m_fuelInfoList.clear();
+    public void ClearFuelInfo() {
+        if (m_fuelInfoList != null) {
+            m_fuelInfoList.clear();
+        }
     }
 }

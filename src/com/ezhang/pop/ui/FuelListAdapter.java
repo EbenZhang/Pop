@@ -54,24 +54,16 @@ class FuelListAdapter extends BaseAdapter {
 
 		FuelDistanceItem item = fuelDistaceList.get(position);
 
-		String price;
-		if (item.voucherType != null && !item.voucherType.equals("")) {
-			price = String.format(Locale.ENGLISH,
-					"%.1f (%s -%dC)", item.price, item.voucherType,
-					item.voucher);
-		} else {
-			price = String.format(Locale.ENGLISH, "%.1f",
-					item.price);
-		}
+        String price = item.GetPriceString();
 		holder.price.setText(price);
-        holder.distanceAndDuration.setText(String.format(Locale.ENGLISH, " %s(%s)", item.distance, item.duration));
+        holder.distanceAndDuration.setText(item.GetDistanceAndDurationString());
 		holder.tradingName.setText(item.tradingName);
 		holder.address.setText(item.destinationAddr);
 
 		return convertView;
 	}
 
-	static class ViewHolder {
+    static class ViewHolder {
 		TextView price;
         TextView distanceAndDuration;
 		TextView tradingName;

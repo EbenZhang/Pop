@@ -1,6 +1,7 @@
 package com.ezhang.pop.model;
 
 import java.util.Comparator;
+import java.util.Locale;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -75,4 +76,21 @@ public class FuelDistanceItem extends DistanceMatrixItem implements Parcelable {
 			return new FuelDistanceItem[size];
 		}
 	};
+
+    public String GetDistanceAndDurationString() {
+        return String.format(Locale.ENGLISH, " %s(%s)", distance, duration);
+    }
+
+    public String GetPriceString() {
+        String priceString;
+        if (voucherType != null && !voucherType.equals("")) {
+            priceString = String.format(Locale.ENGLISH,
+                    "%.1f (%s -%dC)", price, voucherType,
+                    voucher);
+        } else {
+            priceString = String.format(Locale.ENGLISH, "%.1f",
+                    price);
+        }
+        return priceString;
+    }
 }

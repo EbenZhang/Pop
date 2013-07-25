@@ -1,29 +1,23 @@
 package com.ezhang.pop.ui;
 
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.graphics.drawable.AnimationDrawable;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,7 +25,6 @@ import android.widget.Toast;
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
 import com.ezhang.pop.core.LocationService;
-import com.ezhang.pop.core.TimeUtil;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
@@ -48,7 +41,7 @@ import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
-public class MainActivity extends Activity implements Observer, IGestureHandler{
+public class MainActivity extends android.support.v7.app.ActionBarActivity implements Observer, IGestureHandler {
     /**
      * There's no need to continue if switched to another activity
      */
@@ -64,10 +57,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private LocationManager m_locationManager;
     private FuelStateMachine m_fuelStateMachine;
     private final ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
-    private ListView m_fuelDistanceItemlistView = null;
 
-    private Button m_refreshButton = null;
-    private AnimationDrawable m_refreshButtonAnimation = null;
     private AppSettings m_settings = null;
     private AlertDialog m_networkAlertDlg = null;
     private AlertDialog m_locationAccessDlg = null;
@@ -75,6 +65,12 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private GestureDetector m_gestureDetector;
     private TabHost m_tabCurDate;
 
+    private ListViewFragment m_listViewFragment;
+    private GMapFragment m_gmapFragment;
+    private Fragment m_curFragment;
+
+    private ProgressDialog m_progressBar;
+    private ProgressDialog m_progressSwitchingView;
     /**
      * The user will be required to choose the location provider type: location service or set the location manually.
      * This variable is to prevent the selection dialog appearing again on again as the app might be resumed several times during the first session.
@@ -82,34 +78,98 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     private boolean m_locationTypeSelected = false;
     private Toast m_toast;
     private Bundle m_savedInstanceState;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        m_tabCurDate = (TabHost)this.findViewById(R.id.tabHost);
+        if (savedInstanceState != null) {
+            m_savedInstanceState = savedInstanceState;
+        }
+
+        InitDateSelector();
+
+        m_reqManager = RequestManager.from(this);
+
+        m_settings = new AppSettings(this);
+
+        m_gestureDetector = new GestureDetector(this, new GestureListener(this));
+
+        InitProgressBar();
+
+        m_progressSwitchingView = new ProgressDialog(this);
+        m_progressSwitchingView.setMessage("Changing View");
+
+        m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
+            @Override
+            public Object Call(Object input) {
+                OnListFragmentReady();
+                return null;
+            }
+        }, m_fuelInfoList);
+
+        m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
+            @Override
+            public Object Call(Object input) {
+                OnGMapReady();
+                return null;
+            }
+        });
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        m_curFragment = m_listViewFragment;
+        if(m_settings.LastViewIsMap()){
+            m_curFragment = m_gmapFragment;
+        }
+        transaction.add(R.id.fragmentPlaceholder, m_curFragment);
+        transaction.commit();
+    }
+
+    private void InitProgressBar() {
+        m_progressBar = new ProgressDialog(this);
+        m_progressBar.setCancelable(true);
+        m_progressBar.setMessage("Waiting for location info...");
+        m_progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        m_progressBar.setProgress(0);
+        m_progressBar.setMax(100);
+    }
+
+    private void UpdateProgress(int progress, String text, boolean show){
+        m_progressBar.setProgress(progress);
+        m_progressBar.setMessage(text);
+        if(show){
+            m_progressBar.show();
+        }else{
+            m_progressBar.dismiss();
+        }
+    }
+
+    private void InitDateSelector() {
+        m_tabCurDate = (TabHost) this.findViewById(R.id.tabHost);
         m_tabCurDate.setup();
         m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabToday").setContent(R.id.tabToday).setIndicator("Today"));
         m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabTomorrow").setContent(R.id.tabTomorrow).setIndicator("Tomorrow"));
         m_tabCurDate.addTab(m_tabCurDate.newTabSpec("tabYesterday").setContent(R.id.tabYesterday).setIndicator("Yesterday"));
+
         m_tabCurDate.setOnTabChangedListener(new TabHost.OnTabChangeListener() {
             @Override
             public void onTabChanged(String tabId) {
                 UpdateTabColor(m_tabCurDate);
-                if(m_fuelStateMachine == null){
+                if (m_fuelStateMachine == null) {
                     return;
                 }
 
                 int curTab = m_tabCurDate.getCurrentTab();
-                if(curTab == PriceDate.Tomorrow.ordinal()){
+                if (curTab == PriceDate.Tomorrow.ordinal()) {
                     // tomorrow's price is available after 2pm (+8)
                     Calendar cal = Calendar.getInstance();
                     int hour = cal.get(Calendar.HOUR_OF_DAY);
-                    if(hour < 14){
+                    if (hour < 14) {
                         ShowStatusText("Price for tomorrow is only available after 2pm");
                         m_fuelStateMachine.ClearFuelInfo();
                         m_fuelInfoList.clear();
-                        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
+                        m_listViewFragment.UpdateViewForModel();
+                        m_gmapFragment.Clear();
                         return;
                     }
                 }
@@ -117,44 +177,16 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
                 m_fuelStateMachine.Refresh();
             }
         });
-
         m_tabCurDate.setCurrentTab(0);
-
-        m_reqManager = RequestManager.from(this);
-        m_refreshButton = (Button) findViewById(R.id.RefreshButton);
-        m_refreshButtonAnimation = (AnimationDrawable) m_refreshButton
-                .getBackground();
-
-        if (savedInstanceState != null) {
-            m_savedInstanceState = savedInstanceState;
-        }
-
-        InitFuelDistanceItemListView();
-        m_settings = new AppSettings(this);
-
-        m_gestureDetector = new GestureDetector(this, new GestureListener(this));
     }
 
-    private void InitFuelDistanceItemListView() {
-        m_fuelDistanceItemlistView = (ListView) this.findViewById(R.id.fuelDistanceItemlistView);
-        m_fuelDistanceItemlistView.setAdapter(new FuelListAdapter(this, m_fuelInfoList));
-        m_fuelDistanceItemlistView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> a, View v, int position,
-                                    long id) {
-                Object o = m_fuelDistanceItemlistView.getItemAtPosition(position);
-                FuelDistanceItem fullObject = (FuelDistanceItem) o;
-                LaunchNavigationApp(MainActivity.this, fullObject.latitude, fullObject.longitude);
-            }
-        });
+    private void OnGMapReady() {
+        m_progressSwitchingView.dismiss();
+        m_gmapFragment.UpdateModel(m_fuelInfoList);
     }
 
-    private void LaunchNavigationApp(Context ctx, String dstLatitude, String dstLongitude) {
-        String uriString = String.format("geo:0,0?q=%s,%s", dstLatitude,
-                dstLongitude);
-        Uri uri = Uri.parse(uriString);
-        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, uri);
-        ctx.startActivity(intent);
+    private void OnListFragmentReady() {
+        m_progressSwitchingView.dismiss();
     }
 
     public void OnRefreshClicked(View v) {
@@ -164,19 +196,53 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     }
 
     public void OnSettingsClicked(View v) {
+        MarkRefreshRequired();
         Intent intent = new Intent(this, SettingsActivity.class);
         this.startActivity(intent);
     }
 
     public void OnChangeLocationClicked(View v) {
+        MarkRefreshRequired();
         Intent intent = new Intent(this, CustomLocationActivity.class);
         this.startActivity(intent);
     }
 
     public void OnHelpClicked(View v) {
+        MarkRefreshRequired();
         Intent intent = new Intent(this, HelpActivity.class);
         this.startActivity(intent);
     }
+
+    private void MarkRefreshRequired() {
+        m_fuelInfoList.clear();
+        m_listViewFragment.UpdateViewForModel();
+        if(m_fuelStateMachine != null){
+            m_fuelStateMachine.ClearFuelInfo();
+        }
+    }
+
+    private boolean NeedRefreshFromModel(){
+        return m_fuelInfoList.isEmpty();
+    }
+
+    public void OnChangeViewClicked(View v) {
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        boolean listViewVisible = m_curFragment == m_listViewFragment;
+        if (listViewVisible) {
+            m_curFragment = m_gmapFragment;
+            m_progressSwitchingView.show();
+        } else {
+            m_curFragment = m_listViewFragment;
+        }
+        transaction.replace(R.id.fragmentPlaceholder, m_curFragment);
+        boolean switchedToMapView = listViewVisible;
+        m_settings.SetLastViewType(switchedToMapView);
+        transaction.commit();
+
+        m_gmapFragment.setUserVisibleHint(listViewVisible);
+        m_listViewFragment.setUserVisibleHint(!listViewVisible);
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -247,7 +313,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
 
         if (m_fuelStateMachine == null) {
             CreateStateMachine();
-        } else if(m_fuelInfoList.isEmpty()){
+        } else if (NeedRefreshFromModel()) {
             StartStateMachine();
         }
     }
@@ -268,8 +334,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     }
 
     private void StartStateMachine() {
-        SwitchToWaitingStatus();
-        ShowStatusText("Waiting For Location Information");
+        UpdateProgress(0, "Waiting For Location Information", true);
         RestoreFromSavedInstance();
         m_fuelStateMachine.ToggleGPS(m_settings.UseGPSAsLocation());
         m_fuelStateMachine.Refresh();
@@ -296,7 +361,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         boolean isNetworkLocationEnabled = m_locationManager
                 .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-        boolean isOnSimulator = Build.FINGERPRINT.startsWith("generic");
+        boolean isOnSimulator = false;//Build.FINGERPRINT.startsWith("generic");
 
         // network location is not supported by simulator.
         isNetworkLocationEnabled |= isOnSimulator;
@@ -461,42 +526,41 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
      */
     private void OnTimeout() {
         if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
+            UpdateProgress(0, "", false);
             ShowStatusText("Unable to get location. Probably because location access is disabled.");
             HideCurrentAddress();
         } else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
+            UpdateProgress(0, "", false);
             ShowStatusText("Unable to get suburb. Probably because network is disabled.");
         } else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.FuelInfoEvent) {
+            UpdateProgress(0, "", false);
             ShowStatusText("Unable to get fuel info. Probably because network is disabled.");
         }
-        this.SwitchToStopWaiting();
     }
 
     private void OnStateMachineStarted() {
-        ShowStatusText("Waiting For Location Information");
+        UpdateProgress(0, "Waiting For Location Information", true);
         HideCurrentAddress();
-        SwitchToWaitingStatus();
     }
 
     private void OnLocationReceived() {
-        ShowStatusText("Location Information Received");
+        UpdateProgress(25, "Location Information Received", true);
         HideCurrentAddress();
-        SwitchToWaitingStatus();
     }
 
     private void OnFuelInfoReceived() {
-        ShowStatusText("Fuel Price Info Received");
+        UpdateProgress(75, "Fuel Price Info Received", true);
         ShowCurrentAddr();
-        SwitchToWaitingStatus();
         this.m_fuelInfoList.clear();
-        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
+        m_listViewFragment.UpdateViewForModel();
+        m_gmapFragment.Clear();
     }
 
     private void OnSuburbReceived() {
-        ShowStatusText("Suburb Received: "
-                + this.m_fuelStateMachine.m_suburb);
+        UpdateProgress(50, "Suburb Received: "
+                + this.m_fuelStateMachine.m_suburb, true);
         ShowCurrentAddr();
         this.m_fuelInfoList.clear();
-        SwitchToWaitingStatus();
         UpdateTabColor(m_tabCurDate);
     }
 
@@ -506,14 +570,13 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         this.m_fuelInfoList
                 .addAll(items);
         Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
-        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
-        SwitchToStopWaiting();
+        m_listViewFragment.UpdateViewForModel();
+        m_gmapFragment.UpdateModel(m_fuelInfoList);
 
-        if (this.m_fuelInfoList.size() != 0) {
-            this.m_fuelDistanceItemlistView.smoothScrollToPosition(0);
-        } else {
+        if (this.m_fuelInfoList.size() == 0) {
             ShowStatusText("Unfortunately, no fuel info was found");
         }
+        UpdateProgress(0, "", false);
     }
 
     private void ShowCurrentAddr() {
@@ -542,16 +605,6 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         curAddr.setVisibility(View.GONE);
     }
 
-    private void SwitchToStopWaiting() {
-        m_refreshButtonAnimation.stop();
-        m_refreshButton.setEnabled(true);
-    }
-
-    private void SwitchToWaitingStatus() {
-        m_refreshButtonAnimation.start();
-        m_refreshButton.setEnabled(false);
-    }
-
     public void OnShareWithFriendClicked(View v) {
         String url = String.format(
                 "https://play.google.com/store/apps/details?id=%s",
@@ -574,6 +627,24 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
             case R.id.share_with_friend_menu:
                 this.OnShareWithFriendClicked(null);
                 return true;
+            case R.id.action_change_view:
+                String mapView = getResources().getString(R.string.map_view);
+                String curTitle = item.getTitle().toString();
+                if(curTitle.equals(mapView)){
+                    item.setTitle(getResources().getString(R.string.list_view));
+                    item.setIcon(getResources().getDrawable(R.drawable.collections_view_as_list));
+                }else{
+                    item.setTitle(getResources().getString(R.string.map_view));
+                    item.setIcon(getResources().getDrawable(R.drawable.location_map));
+                }
+                this.OnChangeViewClicked(null);
+                return true;
+            case R.id.help_menu_item:
+                OnHelpClicked(null);
+                return true;
+            case R.id.refresh_menu_item:
+                OnRefreshClicked(null);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -585,7 +656,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
         } else {
             m_toast.setText(text);
         }
-        if(m_fuelStateMachine != null && m_fuelStateMachine.IsPaused()){
+        if (m_fuelStateMachine != null && m_fuelStateMachine.IsPaused()) {
             m_toast.cancel();
             return;
         }
@@ -595,8 +666,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         boolean consumed = m_gestureDetector.onTouchEvent(event);
-        if(!consumed)
-        {
+        if (!consumed) {
             return super.dispatchTouchEvent(event);
         }
         return consumed;
@@ -605,7 +675,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     @Override
     public void GestureToLeft() {
         int curTab = m_tabCurDate.getCurrentTab();
-        if(curTab < 2){
+        if (curTab < 2) {
             m_tabCurDate.setCurrentTab(curTab + 1);
         }
     }
@@ -613,7 +683,7 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
     @Override
     public void GestureToRight() {
         int curTab = m_tabCurDate.getCurrentTab();
-        if(curTab > 0){
+        if (curTab > 0) {
             m_tabCurDate.setCurrentTab(curTab - 1);
         }
     }

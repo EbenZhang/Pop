@@ -9,10 +9,14 @@
     <string name="choice_custom_location">Add new location</string>
     <string name="change">Change</string>
     <string name="choice_gps_location">Use GPS to detect my location</string>
-    <string name="address">address</string>
+    <string name="address">Address</string>
     <string name="suburb">suburb</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="help">Help</string>
+    <string name="change_view">Change View</string>
+    <string name="map_view">Map View</string>
+    <string name="list_view">List View</string>
+    <string name="refresh">Refresh</string>
 
 </resources>

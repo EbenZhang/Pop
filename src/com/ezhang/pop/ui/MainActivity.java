@@ -107,11 +107,11 @@ public class MainActivity extends Activity implements Observer, IGestureHandler{
                     int hour = cal.get(Calendar.HOUR_OF_DAY);
                     if(hour < 14){
                         ShowStatusText("Price for tomorrow is only available after 2pm");
+                        m_fuelStateMachine.ClearFuelInfo();
+                        m_fuelInfoList.clear();
+                        ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
+                        return;
                     }
-                    m_fuelStateMachine.ClearFuelInfo();
-                    m_fuelInfoList.clear();
-                    ((BaseAdapter) m_fuelDistanceItemlistView.getAdapter()).notifyDataSetChanged();
-                    return;
                 }
                 m_fuelStateMachine.SetDateOfFuel(PriceDate.values()[curTab]);
                 m_fuelStateMachine.Refresh();

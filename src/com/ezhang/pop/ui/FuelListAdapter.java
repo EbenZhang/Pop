@@ -39,8 +39,10 @@ class FuelListAdapter extends BaseAdapter {
 		if (convertView == null) {
 			convertView = mInflater.inflate(R.layout.custom_row_view, null);
 			holder = new ViewHolder();
-			holder.priceAndDistance = (TextView) convertView
-					.findViewById(R.id.priceAndDistance);
+			holder.price = (TextView) convertView
+					.findViewById(R.id.price);
+            holder.distanceAndDuration = (TextView) convertView
+                    .findViewById(R.id.distanceAndDuration);
 			holder.tradingName = (TextView) convertView
 					.findViewById(R.id.tradingName);
 			holder.address = (TextView) convertView.findViewById(R.id.address);
@@ -52,16 +54,17 @@ class FuelListAdapter extends BaseAdapter {
 
 		FuelDistanceItem item = fuelDistaceList.get(position);
 
-		String priceAndDistance;
+		String price;
 		if (item.voucherType != null && !item.voucherType.equals("")) {
-			priceAndDistance = String.format(Locale.ENGLISH,
-					"%.1f (%s -%dC) %s(%s)", item.price, item.voucherType,
-					item.voucher, item.distance, item.duration);
+			price = String.format(Locale.ENGLISH,
+					"%.1f (%s -%dC)", item.price, item.voucherType,
+					item.voucher);
 		} else {
-			priceAndDistance = String.format(Locale.ENGLISH, "%.1f %s(%s)",
-					item.price, item.distance, item.duration);
+			price = String.format(Locale.ENGLISH, "%.1f",
+					item.price);
 		}
-		holder.priceAndDistance.setText(priceAndDistance);
+		holder.price.setText(price);
+        holder.distanceAndDuration.setText(String.format(Locale.ENGLISH, " %s(%s)", item.distance, item.duration));
 		holder.tradingName.setText(item.tradingName);
 		holder.address.setText(item.destinationAddr);
 
@@ -69,7 +72,8 @@ class FuelListAdapter extends BaseAdapter {
 	}
 
 	static class ViewHolder {
-		TextView priceAndDistance;
+		TextView price;
+        TextView distanceAndDuration;
 		TextView tradingName;
 		TextView address;
 	}

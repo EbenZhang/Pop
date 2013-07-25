@@ -585,4 +585,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
     public boolean IsPaused(){
         return this.m_paused;
     }
+
+    public void ClearFuelInfo(){
+        m_fuelInfoList.clear();
+    }
 }

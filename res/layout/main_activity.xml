@@ -31,6 +31,7 @@
             <TabWidget
                     android:id="@android:id/tabs"
                     android:layout_width="fill_parent"
+                    android:textSize="18sp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="-5dip"> <!-- bottom margin for not showing the annoying bottom line -->
             </TabWidget>

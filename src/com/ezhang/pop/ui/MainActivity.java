@@ -548,9 +548,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         }
     }
 
-    private void OnDonateClicked() {
-    }
-
     private void ShowStatusText(String text) {
         if (m_toast == null) {
             m_toast = Toast.makeText(this, text, Toast.LENGTH_LONG);

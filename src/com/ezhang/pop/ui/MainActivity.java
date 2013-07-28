@@ -18,13 +18,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 import android.widget.TabHost;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ezhang.pop.R;
 import com.ezhang.pop.core.ICallable;
-import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.model.FuelDistanceItem;
 import com.ezhang.pop.network.RequestManager;
 import com.ezhang.pop.settings.AppSettings;
@@ -37,19 +38,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Observable;
 import java.util.Observer;
 
 public class MainActivity extends android.support.v7.app.ActionBarActivity implements Observer, IGestureHandler {
-    /**
-     * There's no need to continue if switched to another activity
-     */
-    enum EmIndication {
-        EmContinue,
-        EmStop
-    }
-
     /**
      * Manage requests that query data from remote service.
      */
@@ -60,17 +52,18 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
 
     private AppSettings m_settings = null;
     private AlertDialog m_networkAlertDlg = null;
-    private AlertDialog m_locationAccessDlg = null;
-    private AlertDialog m_gpsOrCustomLocationDlg = null;
     private GestureDetector m_gestureDetector;
     private TabHost m_tabCurDate;
 
-    private ListViewFragment m_listViewFragment;
-    private GMapFragment m_gmapFragment;
-    private Fragment m_curFragment;
+    private static ListViewFragment m_listViewFragment;
+    private static GMapFragment m_gmapFragment;
+    private static Fragment m_curFragment;
 
     private ProgressDialog m_progressBar;
     private ProgressDialog m_progressSwitchingView;
+
+    private Spinner m_curAddrSpinner;
+
     /**
      * The user will be required to choose the location provider type: location service or set the location manually.
      * This variable is to prevent the selection dialog appearing again on again as the app might be resumed several times during the first session.
@@ -88,6 +81,38 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
             m_savedInstanceState = savedInstanceState;
         }
 
+        m_curAddrSpinner = (Spinner)findViewById(R.id.cur_addr_spinner);
+        m_curAddrSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
+                if (pos != -1) {
+                    String selectedAddr = adapterView.getItemAtPosition(pos).toString();
+                    if (selectedAddr.equals(getResources().getString(R.string.manage_addresses))) {
+                        OnChangeLocationClicked();
+                    }else{
+                        List<String> addresses = m_settings.GetHistoryLocations();
+                        int index = addresses.indexOf(selectedAddr);
+                        addresses.remove(index);
+                        addresses.add(0, selectedAddr);
+                        m_settings.SaveLocations(addresses);
+                        MarkRefreshRequired();
+                        int curTab = m_tabCurDate.getCurrentTab();
+                        if (curTab == PriceDate.Tomorrow.ordinal()) {
+                            if (!CheckTimeForTomorrow()){
+                                return;
+                            }
+                        }
+                        m_fuelStateMachine.Refresh();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
         InitDateSelector();
 
         m_reqManager = RequestManager.from(this);
@@ -100,35 +125,49 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
 
         m_progressSwitchingView = new ProgressDialog(this);
         m_progressSwitchingView.setMessage("Changing View");
+        if (m_listViewFragment == null) {
+            m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
+                @Override
+                public Object Call(Object input) {
+                    OnListFragmentReady();
+                    return null;
+                }
+            }, m_fuelInfoList);
+        }
 
-        m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
-            @Override
-            public Object Call(Object input) {
-                OnListFragmentReady();
-                return null;
-            }
-        }, m_fuelInfoList);
-
-        m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
-            @Override
-            public Object Call(Object input) {
-                OnGMapReady();
-                return null;
-            }
-        });
+        if(m_gmapFragment == null) {
+            m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
+                @Override
+                public Object Call(Object input) {
+                    OnGMapReady();
+                    return null;
+                }
+            }, m_settings);
+        }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         m_curFragment = m_listViewFragment;
-        if(m_settings.LastViewIsMap()){
+        if (m_settings.LastViewIsMap()) {
             m_curFragment = m_gmapFragment;
         }
-        transaction.add(R.id.fragmentPlaceholder, m_curFragment);
+        transaction.replace(R.id.fragmentPlaceholder, m_curFragment);
         transaction.commit();
+    }
+
+    private void BindHistoryAddr() {
+        List<String> historyAddrs = m_settings.GetHistoryLocations();
+        historyAddrs.add(getResources().getString(R.string.manage_addresses));
+        if(historyAddrs.size() != 0) {
+            ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
+                    android.R.layout.simple_spinner_item, historyAddrs);
+            dataAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            m_curAddrSpinner.setAdapter(dataAdapter);
+        }
     }
 
     private void InitProgressBar() {
         m_progressBar = new ProgressDialog(this);
         m_progressBar.setCancelable(true);
-        m_progressBar.setMessage("Waiting for location info...");
+        m_progressBar.setMessage("Waiting For Fuel Info...");
         m_progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         m_progressBar.setProgress(0);
         m_progressBar.setMax(100);
@@ -158,56 +197,63 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
                 if (m_fuelStateMachine == null) {
                     return;
                 }
-
+                MarkRefreshRequired();
                 int curTab = m_tabCurDate.getCurrentTab();
-                if (curTab == PriceDate.Tomorrow.ordinal()) {
-                    // tomorrow's price is available after 2pm (+8)
-                    Calendar cal = Calendar.getInstance();
-                    int hour = cal.get(Calendar.HOUR_OF_DAY);
-                    if (hour < 14) {
-                        ShowStatusText("Price for tomorrow is only available after 2pm");
-                        m_fuelStateMachine.ClearFuelInfo();
-                        m_fuelInfoList.clear();
-                        m_listViewFragment.UpdateViewForModel();
-                        m_gmapFragment.Clear();
-                        return;
-                    }
-                }
                 m_fuelStateMachine.SetDateOfFuel(PriceDate.values()[curTab]);
+                if (curTab == PriceDate.Tomorrow.ordinal()) {
+                    if (!CheckTimeForTomorrow()) return;
+                }
                 m_fuelStateMachine.Refresh();
             }
         });
         m_tabCurDate.setCurrentTab(0);
     }
 
+    private boolean CheckTimeForTomorrow() {
+        // tomorrow's price is available after 2pm (+8)
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        if (hour < 14) {
+            ShowStatusText("Price for tomorrow is only available after 2pm");
+            m_fuelStateMachine.ClearFuelInfo();
+            m_fuelInfoList.clear();
+            m_listViewFragment.UpdateViewForModel();
+            m_gmapFragment.Clear();
+            return false;
+        }
+        return true;
+    }
+
     private void OnGMapReady() {
         m_progressSwitchingView.dismiss();
         m_gmapFragment.UpdateModel(m_fuelInfoList);
+        m_progressSwitchingView.dismiss();
     }
 
     private void OnListFragmentReady() {
         m_progressSwitchingView.dismiss();
+        m_listViewFragment.UpdateViewForModel();
     }
 
-    public void OnRefreshClicked(View v) {
+    private void OnRefreshClicked() {
         if (this.m_fuelStateMachine != null) {
             this.m_fuelStateMachine.Refresh();
         }
     }
 
-    public void OnSettingsClicked(View v) {
+    private void OnSettingsClicked() {
         MarkRefreshRequired();
         Intent intent = new Intent(this, SettingsActivity.class);
         this.startActivity(intent);
     }
 
-    public void OnChangeLocationClicked(View v) {
+    private void OnChangeLocationClicked() {
         MarkRefreshRequired();
         Intent intent = new Intent(this, CustomLocationActivity.class);
         this.startActivity(intent);
     }
 
-    public void OnHelpClicked(View v) {
+    private void OnHelpClicked() {
         MarkRefreshRequired();
         Intent intent = new Intent(this, HelpActivity.class);
         this.startActivity(intent);
@@ -216,6 +262,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     private void MarkRefreshRequired() {
         m_fuelInfoList.clear();
         m_listViewFragment.UpdateViewForModel();
+        m_gmapFragment.Clear();
         if(m_fuelStateMachine != null){
             m_fuelStateMachine.ClearFuelInfo();
         }
@@ -225,7 +272,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         return m_fuelInfoList.isEmpty();
     }
 
-    public void OnChangeViewClicked(View v) {
+    private void OnChangeViewClicked() {
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         boolean listViewVisible = m_curFragment == m_listViewFragment;
         if (listViewVisible) {
@@ -243,11 +290,18 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         m_listViewFragment.setUserVisibleHint(!listViewVisible);
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+        MenuItem item = menu.findItem(R.id.change_view_menu_item);
+        if (m_settings.LastViewIsMap()) {
+            item.setTitle(getResources().getString(R.string.list_view));
+            item.setIcon(getResources().getDrawable(R.drawable.collections_view_as_list));
+        } else {
+            item.setTitle(getResources().getString(R.string.map_view));
+            item.setIcon(getResources().getDrawable(R.drawable.location_map));
+        }
         return true;
     }
 
@@ -284,32 +338,12 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
 
         PromptEnableNetwork();
 
-        if (PromptLocationTypeSelection() == EmIndication.EmStop) {
+        if (m_settings.GetHistoryLocations().size() == 0){
+            OnChangeLocationClicked();
             return;
         }
 
-        OnLocationTypeSelected();
-    }
-
-    private EmIndication PromptLocationTypeSelection() {
-        boolean isFirstRun = this.m_settings.IsFirstRun();
-        if (isFirstRun && !m_locationTypeSelected) {
-            CreateGPSOrCustomLocationAlertDlg();
-            if (!m_gpsOrCustomLocationDlg.isShowing()) {
-                m_gpsOrCustomLocationDlg.show();
-            }
-            return EmIndication.EmStop;
-        }
-        return EmIndication.EmContinue;
-    }
-
-    private void OnLocationTypeSelected() {
-        boolean useGPS = m_settings.UseGPSAsLocation();
-        if (useGPS) {
-            if (PromptEnableLocationService() == EmIndication.EmStop) {
-                return;
-            }
-        }
+        BindHistoryAddr();
 
         if (m_fuelStateMachine == null) {
             CreateStateMachine();
@@ -334,9 +368,14 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     }
 
     private void StartStateMachine() {
-        UpdateProgress(0, "Waiting For Location Information", true);
+        int curTab = m_tabCurDate.getCurrentTab();
+        if (curTab == PriceDate.Tomorrow.ordinal()) {
+            if (!CheckTimeForTomorrow()){
+                return;
+            }
+        }
+        UpdateProgress(0, "Waiting For Fuel Info...", true);
         RestoreFromSavedInstance();
-        m_fuelStateMachine.ToggleGPS(m_settings.UseGPSAsLocation());
         m_fuelStateMachine.Refresh();
     }
 
@@ -353,101 +392,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
                 m_networkAlertDlg.show();
             }
         }
-    }
-
-    private EmIndication PromptEnableLocationService() {
-        boolean isGPSEnabled = m_locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean isNetworkLocationEnabled = m_locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
-        boolean isOnSimulator = false;//Build.FINGERPRINT.startsWith("generic");
-
-        // network location is not supported by simulator.
-        isNetworkLocationEnabled |= isOnSimulator;
-
-        if (!isGPSEnabled || !isNetworkLocationEnabled) {
-            CreateLocationAccessAlertDlg();
-            if (!m_locationAccessDlg.isShowing()) {
-                m_locationAccessDlg.show();
-            }
-        }
-
-        String provider = LocationService.GetBestProvider(m_locationManager);
-
-        if (provider == null) {
-            if (!m_locationAccessDlg.isShowing()) {
-                m_locationAccessDlg.show();
-            }
-            return EmIndication.EmStop;
-        }
-        return EmIndication.EmContinue;
-    }
-
-    private void CreateGPSOrCustomLocationAlertDlg() {
-        if (m_gpsOrCustomLocationDlg != null) {
-            return;
-        }
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("Select Location Type");
-
-        alertDialog.setCancelable(false);
-
-        // Setting Dialog Message
-        alertDialog
-                .setMessage("You can use GPS to detect your location or set it yourself.");
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Use GPS",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        m_settings.UseGPSAsLocation(true);
-                        m_locationTypeSelected = true;
-                        OnLocationTypeSelected();
-                    }
-                });
-
-        // On pressing Settings button
-        alertDialog.setNegativeButton("Set it myself",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        m_settings.UseGPSAsLocation(true);
-                        m_locationTypeSelected = true;
-                        OnChangeLocationClicked(null);
-                    }
-                });
-
-        // Showing Alert Message
-        m_gpsOrCustomLocationDlg = alertDialog.create();
-    }
-
-    private void CreateLocationAccessAlertDlg() {
-        if (m_locationAccessDlg != null) {
-            return;
-        }
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-
-        // Setting Dialog Title
-        alertDialog.setTitle("Location Access Required");
-
-        // Setting Dialog Message
-        alertDialog
-                .setMessage("Location Access is disabled. Press go to the settings menu and enable both \n * GPS satellites\n * Wi-Fi & mobile network");
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Go",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(
-                                Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        MainActivity.this.startActivity(intent);
-                    }
-                });
-
-        // Showing Alert Message
-        m_locationAccessDlg = alertDialog.create();
     }
 
     private void CreateNetworkAlertDlg() {
@@ -500,9 +444,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         if (this.m_fuelStateMachine.GetCurState() == EmState.DistanceReceived) {
             OnDistanceInfoReceived(this.m_fuelStateMachine.m_fuelDistanceItems);
         }
-        if (this.m_fuelStateMachine.GetCurState() == EmState.SuburbReceived) {
-            OnSuburbReceived();
-        }
 
         if (this.m_fuelStateMachine.GetCurState() == EmState.FuelInfoReceived) {
             OnFuelInfoReceived();
@@ -510,10 +451,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
 
         if (this.m_fuelStateMachine.GetCurState() == EmState.Start) {
             OnStateMachineStarted();
-        }
-
-        if (this.m_fuelStateMachine.GetCurState() == EmState.GeoLocationReceived) {
-            OnLocationReceived();
         }
 
         if (this.m_fuelStateMachine.GetCurState() == EmState.Timeout) {
@@ -528,7 +465,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.GeoLocationEvent) {
             UpdateProgress(0, "", false);
             ShowStatusText("Unable to get location. Probably because location access is disabled.");
-            HideCurrentAddress();
         } else if (this.m_fuelStateMachine.m_timeoutEvent == EmEvent.SuburbEvent) {
             UpdateProgress(0, "", false);
             ShowStatusText("Unable to get suburb. Probably because network is disabled.");
@@ -539,33 +475,18 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     }
 
     private void OnStateMachineStarted() {
-        UpdateProgress(0, "Waiting For Location Information", true);
-        HideCurrentAddress();
-    }
-
-    private void OnLocationReceived() {
-        UpdateProgress(25, "Location Information Received", true);
-        HideCurrentAddress();
+        UpdateProgress(0, "Waiting For Fuel Info...", true);
     }
 
     private void OnFuelInfoReceived() {
-        UpdateProgress(75, "Fuel Price Info Received", true);
-        ShowCurrentAddr();
+        UpdateTabColor(m_tabCurDate);
+        UpdateProgress(50, "Fuel Info Received", true);
         this.m_fuelInfoList.clear();
         m_listViewFragment.UpdateViewForModel();
         m_gmapFragment.Clear();
     }
 
-    private void OnSuburbReceived() {
-        UpdateProgress(50, "Suburb Received: "
-                + this.m_fuelStateMachine.m_suburb, true);
-        ShowCurrentAddr();
-        this.m_fuelInfoList.clear();
-        UpdateTabColor(m_tabCurDate);
-    }
-
     private void OnDistanceInfoReceived(List<FuelDistanceItem> items) {
-        ShowCurrentAddr();
         this.m_fuelInfoList.clear();
         this.m_fuelInfoList
                 .addAll(items);
@@ -579,33 +500,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         UpdateProgress(0, "", false);
     }
 
-    private void ShowCurrentAddr() {
-        if (this.m_fuelStateMachine.m_suburb != null
-                && !m_fuelStateMachine.m_suburb.equals("")) {
-            int indexOfSuburb = this.m_fuelStateMachine.m_address
-                    .indexOf(this.m_fuelStateMachine.m_suburb);
-            String addrWithoutSuburb = this.m_fuelStateMachine.m_address;
-            if (indexOfSuburb > 0) {
-                addrWithoutSuburb = this.m_fuelStateMachine.m_address
-                        .substring(0, indexOfSuburb);
-            }
-            TextView v = ((TextView) this.findViewById(R.id.curAddressText));
-            String addrText = String.format(Locale.ENGLISH,
-                    "You're at:%s%s.Touch here to change if incorrect.",
-                    addrWithoutSuburb, this.m_fuelStateMachine.m_suburb);
-            v.setText(addrText);
-
-            View curAddr = this.findViewById(R.id.layoutCurAddr);
-            curAddr.setVisibility(View.VISIBLE);
-        }
-    }
-
-    private void HideCurrentAddress() {
-        View curAddr = this.findViewById(R.id.layoutCurAddr);
-        curAddr.setVisibility(View.GONE);
-    }
-
-    public void OnShareWithFriendClicked(View v) {
+    private void OnShareWithFriendClicked() {
         String url = String.format(
                 "https://play.google.com/store/apps/details?id=%s",
                 getApplicationContext().getPackageName());
@@ -621,13 +516,13 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.action_settings:
-                OnSettingsClicked(null);
+            case R.id.settings_menu_item:
+                OnSettingsClicked();
                 return true;
-            case R.id.share_with_friend_menu:
-                this.OnShareWithFriendClicked(null);
+            case R.id.share_menu_item:
+                this.OnShareWithFriendClicked();
                 return true;
-            case R.id.action_change_view:
+            case R.id.change_view_menu_item:
                 String mapView = getResources().getString(R.string.map_view);
                 String curTitle = item.getTitle().toString();
                 if(curTitle.equals(mapView)){
@@ -637,17 +532,23 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
                     item.setTitle(getResources().getString(R.string.map_view));
                     item.setIcon(getResources().getDrawable(R.drawable.location_map));
                 }
-                this.OnChangeViewClicked(null);
+                this.OnChangeViewClicked();
                 return true;
             case R.id.help_menu_item:
-                OnHelpClicked(null);
+                OnHelpClicked();
                 return true;
             case R.id.refresh_menu_item:
-                OnRefreshClicked(null);
+                OnRefreshClicked();
+                return true;
+            case R.id.manage_addr_menu_item:
+                OnChangeLocationClicked();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void OnDonateClicked() {
     }
 
     private void ShowStatusText(String text) {

@@ -18,5 +18,7 @@
     <string name="map_view">Map View</string>
     <string name="list_view">List View</string>
     <string name="refresh">Refresh</string>
+    <string name="detect_by_gps">Detect By GPS</string>
+    <string name="manage_addresses">Manage Addresses</string>
 
 </resources>

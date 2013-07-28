@@ -26,6 +26,9 @@ public class ListViewFragment extends android.support.v4.app.Fragment {
     private final ArrayList<FuelDistanceItem> m_fuelInfoList;
     ICallable<Object, Object> m_onFragmentCreated;
     boolean m_isReady = false;
+    public ListViewFragment(){
+        m_fuelInfoList = new ArrayList<FuelDistanceItem>();
+    }
     public ListViewFragment(ICallable<Object, Object> onFragmentCreated, ArrayList<FuelDistanceItem> fuelInfoList){
         m_onFragmentCreated = onFragmentCreated;
         m_fuelInfoList = fuelInfoList;
@@ -54,7 +57,9 @@ public class ListViewFragment extends android.support.v4.app.Fragment {
         });
 
         m_isReady = true;
-        m_onFragmentCreated.Call(null);
+        if(m_onFragmentCreated != null){
+            m_onFragmentCreated.Call(null);
+        }
     }
     private void LaunchNavigationApp(Context ctx, String dstLatitude, String dstLongitude) {
         String uriString = String.format("geo:0,0?q=%s,%s", dstLatitude,

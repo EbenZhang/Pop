@@ -2,6 +2,7 @@
   <library name="android-support-v7-appcompat">
     <CLASSES>
       <root url="jar://$APPLICATION_HOME_DIR$/sdk/extras/android/support/v7/appcompat/libs/android-support-v7-appcompat.jar!/" />
+      <root url="jar://$PROJECT_DIR$/libs/PayPal_MPL.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

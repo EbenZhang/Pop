@@ -2,20 +2,21 @@
       xmlns:wafuel="http://schemas.android.com/apk/res-auto">
 
     <item
-            android:id="@+id/refresh_menu_item"
+            android:id="@+id/change_view_menu_item"
             android:orderInCategory="1"
+            wafuel:showAsAction="always|collapseActionView"
+            android:icon="@drawable/location_map"
+            android:title="@string/map_view"/>
+
+    <item
+            android:id="@+id/refresh_menu_item"
+            android:orderInCategory="10"
             wafuel:showAsAction="always|collapseActionView"
             android:icon="@drawable/navigation_refresh"
             android:title="@string/refresh"/>
 
     <item
-            android:id="@+id/action_change_view"
-            android:orderInCategory="10"
-            wafuel:showAsAction="always|collapseActionView"
-            android:icon="@drawable/location_map"
-            android:title="@string/map_view"/>
-    <item
-            android:id="@+id/action_settings"
+            android:id="@+id/settings_menu_item"
             android:orderInCategory="100"
             wafuel:showAsAction="always|collapseActionView"
             android:icon="@drawable/action_settings"
@@ -34,8 +35,15 @@
                     android:icon="@drawable/action_help"
                     wafuel:showAsAction="always"
                     android:title="@string/help"/>
+
             <item
-                    android:id="@+id/share_with_friend_menu"
+                    android:id="@+id/manage_addr_menu_item"
+                    android:orderInCategory="100"
+                    android:icon="@drawable/manage_addr"
+                    wafuel:showAsAction="always"
+                    android:title="@string/manage_addresses"/>
+            <item
+                    android:id="@+id/share_menu_item"
                     android:orderInCategory="100"
                     android:icon="@drawable/rating_good"
                     wafuel:showAsAction="always"

@@ -27,6 +27,7 @@ public class AppSettings {
     private static final String LAST_SUBURB = "com.ezhang.pop.last.suburb";
     private static final String LOCATION_SEP = "||";
     private static final String LAST_VIEW_IS_MAP = "com.ezhang.pop.last.view.map";
+    private static final String ZOOM_LEVEL = "com.ezhang.pop.zoom.level";
 
     private final Context m_context;
     public int m_colesDiscount = 8;
@@ -184,6 +185,16 @@ public class AppSettings {
     public void SetLastViewType(boolean isMapView){
         Editor editor = m_settings.edit();
         editor.putBoolean(LAST_VIEW_IS_MAP, isMapView);
+        editor.commit();
+    }
+
+    public int GetZoomLevel() {
+        return m_settings.getInt(ZOOM_LEVEL, 11);
+    }
+
+    public void SetZoomLevel(int zoomLevel) {
+        Editor editor = m_settings.edit();
+        editor.putInt(ZOOM_LEVEL, zoomLevel);
         editor.commit();
     }
 }

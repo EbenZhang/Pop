@@ -8,10 +8,11 @@
 
     <com.google.ads.AdView
         android:id="@+id/adView"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        ads:adSize="BANNER"
+        ads:adSize="SMART_BANNER"
         ads:adUnitId="a1517d1d195f6bf"
+        android:gravity="center"
         ads:loadAdOnCreate="true"
         ads:testDevices="TEST_EMULATOR" />
 
@@ -61,38 +62,15 @@
         </LinearLayout>
     </TabHost>
 
-    <LinearLayout
-            android:id="@+id/layoutCurAddr"
-            android:layout_width="match_parent"
+    <Spinner
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:layout_below="@+id/tabHost"
-            android:orientation="horizontal">
-
-        <ImageButton
-                android:id="@+id/btnChangeLocation"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:background="#00000000"
-                android:contentDescription="@string/settings"
-                android:scaleType="fitCenter"
-                android:layout_gravity="center_vertical"
-                android:src="@drawable/location"
-                android:onClick="OnChangeLocationClicked"
-                android:text="@string/change"/>
-
-        <TextView
-                android:id="@+id/curAddressText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:onClick="OnChangeLocationClicked"
-                android:textIsSelectable="true">
-        </TextView>
-    </LinearLayout>
+            android:id="@+id/cur_addr_spinner"/>
 
     <FrameLayout
-            android:layout_below="@+id/layoutCurAddr"
-            android:layout_above="@+id/seperatorBar"
+            android:layout_below="@+id/cur_addr_spinner"
             android:id="@+id/fragmentPlaceholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent">

@@ -227,7 +227,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     private void OnGMapReady() {
         m_progressSwitchingView.dismiss();
         m_gmapFragment.UpdateModel(m_fuelInfoList);
-        m_progressSwitchingView.dismiss();
     }
 
     private void OnListFragmentReady() {
@@ -277,10 +276,10 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         boolean listViewVisible = m_curFragment == m_listViewFragment;
         if (listViewVisible) {
             m_curFragment = m_gmapFragment;
-            m_progressSwitchingView.show();
         } else {
             m_curFragment = m_listViewFragment;
         }
+        m_progressSwitchingView.show();
         transaction.replace(R.id.fragmentPlaceholder, m_curFragment);
         boolean switchedToMapView = listViewVisible;
         m_settings.SetLastViewType(switchedToMapView);
@@ -493,6 +492,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         Collections.sort(m_fuelInfoList, FuelDistanceItem.GetComparer());
         m_listViewFragment.UpdateViewForModel();
         m_gmapFragment.UpdateModel(m_fuelInfoList);
+        m_progressSwitchingView.dismiss();
 
         if (this.m_fuelInfoList.size() == 0) {
             ShowStatusText("Unfortunately, no fuel info was found");

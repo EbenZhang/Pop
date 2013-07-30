@@ -188,7 +188,7 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 		if (addNewLocation) {
             AutoCompleteTextView suburbSelector = (AutoCompleteTextView) findViewById(R.id.autoCompleteSuburb);
             String suburb = suburbSelector.getText().toString();
-            boolean existing = ((ArrayAdapter<String>)suburbSelector.getAdapter()).getPosition(suburb) != -1;
+            boolean existing = ((ArrayAdapter<String>)suburbSelector.getAdapter()).getPosition(suburb.toUpperCase()) != -1;
             if(!existing){
                 Toast.makeText(this, "Cannot find suburb: '" + suburb + "'", Toast.LENGTH_SHORT).show();
                 suburbSelector.requestFocus();

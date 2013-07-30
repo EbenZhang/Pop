@@ -2,278 +2,281 @@
 <resources>
 
     <string-array name="suburbs">
-        <item>Alexander Heights</item>
-        <item>Alfred Cove</item>
-        <item>Applecross</item>
-        <item>Ardross</item>
-        <item>Armadale</item>
-        <item>Ascot</item>
-        <item>Ashfield</item>
-        <item>Attadale</item>
-        <item>Atwell</item>
-        <item>Balcatta</item>
-        <item>Balga</item>
-        <item>Ballajura</item>
-        <item>Bassendean</item>
-        <item>Bateman</item>
-        <item>Bayswater</item>
-        <item>Beaconsfield</item>
-        <item>Beckenham</item>
-        <item>Bedford</item>
-        <item>Bedfordale</item>
-        <item>Beechboro</item>
-        <item>Beechina</item>
-        <item>Beeliar</item>
-        <item>Beldon</item>
-        <item>Bellevue</item>
-        <item>Belmont</item>
-        <item>Bentley</item>
-        <item>Bertram</item>
-        <item>Bibra Lake</item>
-        <item>Bickley</item>
-        <item>Bicton</item>
-        <item>Booragoon</item>
-        <item>Boya</item>
-        <item>Brentwood</item>
-        <item>Brigadoon</item>
-        <item>Brookdale</item>
-        <item>Bull Creek</item>
-        <item>Bullsbrook</item>
-        <item>Burswood</item>
-        <item>Butler</item>
-        <item>Byford</item>
-        <item>Calista</item>
-        <item>Canning Vale</item>
-        <item>Cannington</item>
-        <item>Cardup</item>
-        <item>Carine</item>
-        <item>Carlisle</item>
-        <item>Carmel</item>
-        <item>Carramar</item>
-        <item>Casaurina</item>
-        <item>Caversham</item>
-        <item>Champion Lakes</item>
-        <item>Churchlands</item>
-        <item>City Beach</item>
-        <item>Claremont</item>
-        <item>Clarkson</item>
-        <item>Cloverdale</item>
-        <item>Como</item>
-        <item>Connolly</item>
-        <item>Coogee</item>
-        <item>Coolbellup</item>
-        <item>Coolbinia</item>
-        <item>Cooloongup</item>
-        <item>Cottesloe</item>
-        <item>Craigie</item>
-        <item>Crawley</item>
-        <item>Currambine</item>
-        <item>Daglish</item>
-        <item>Dalkeith</item>
-        <item>Darch</item>
-        <item>Darling Downs</item>
-        <item>Darlington</item>
-        <item>Dianella</item>
-        <item>Doubleview</item>
-        <item>Duncraig</item>
-        <item>East Cannington</item>
-        <item>East Fremantle</item>
-        <item>East Perth</item>
-        <item>East Victoria Park</item>
-        <item>Eden Hill</item>
-        <item>Edgewater</item>
-        <item>Ellenbrook</item>
-        <item>Embleton</item>
-        <item>Ferndale</item>
-        <item>Floreat</item>
-        <item>Forrestdale</item>
-        <item>Forrestfield</item>
-        <item>Fremantle</item>
-        <item>Girrawheen</item>
-        <item>Glen Forrest</item>
-        <item>Glendalough</item>
-        <item>Gooseberry Hill</item>
-        <item>Gosnells</item>
-        <item>Greenmount</item>
-        <item>Greenwood</item>
-        <item>Guildford</item>
-        <item>Gwelup</item>
-        <item>Hamersley</item>
-        <item>Hamilton Hill</item>
-        <item>Hazelmere</item>
-        <item>Heathridge</item>
-        <item>Helena Valley</item>
-        <item>Henley Brook</item>
-        <item>High Wycombe</item>
-        <item>Highgate</item>
-        <item>Hillarys</item>
-        <item>Hillman</item>
-        <item>Hilton</item>
-        <item>Hocking</item>
-        <item>Hovea</item>
-        <item>Huntingdale</item>
-        <item>Iluka</item>
-        <item>Inglewood</item>
-        <item>Innaloo</item>
-        <item>Jandakot</item>
-        <item>Jolimont</item>
-        <item>Joondalup</item>
-        <item>Joondanna</item>
-        <item>Kalamunda</item>
-        <item>Kallaroo</item>
-        <item>Karawara</item>
-        <item>Kardinya</item>
-        <item>Karrinyup</item>
-        <item>Kelmscott</item>
-        <item>Kensington</item>
-        <item>Kenwick</item>
-        <item>Kewdale</item>
-        <item>Kiara</item>
-        <item>Kingsley</item>
-        <item>Kinross</item>
-        <item>Koondoola</item>
-        <item>Koongamia</item>
-        <item>Landsdale</item>
-        <item>Langford</item>
-        <item>Lathlain</item>
-        <item>Leda</item>
-        <item>Leederville</item>
-        <item>Leeming</item>
-        <item>Lesmurdie</item>
-        <item>Lockridge</item>
-        <item>Lynwood</item>
-        <item>Maddington</item>
-        <item>Madeley</item>
-        <item>Mahogany Creek</item>
-        <item>Maida Vale</item>
-        <item>Manning</item>
-        <item>Marangaroo</item>
-        <item>Mariginup</item>
-        <item>Marmion</item>
-        <item>Martin</item>
-        <item>Maylands</item>
-        <item>Medina</item>
-        <item>Melville</item>
-        <item>Menora</item>
-        <item>Merriwa</item>
-        <item>Middle Swan</item>
-        <item>Midland</item>
-        <item>Midvale</item>
-        <item>Millendon</item>
-        <item>Mindarie</item>
-        <item>Mirrabooka</item>
-        <item>Morley</item>
-        <item>Mosman Park</item>
-        <item>Mount Claremont</item>
-        <item>Mount Hawthorn</item>
-        <item>Mount Lawley</item>
-        <item>Mount Nasura</item>
-        <item>Mount Pleasant</item>
-        <item>Mt Helena</item>
-        <item>Mt Richon</item>
-        <item>Mullaloo</item>
-        <item>Mundaring</item>
-        <item>Mundijong</item>
-        <item>Munster</item>
-        <item>Murdoch</item>
-        <item>Myaree</item>
-        <item>Nedlands</item>
-        <item>Neerabup</item>
-        <item>Nollamara</item>
-        <item>Noranda</item>
-        <item>North Beach</item>
-        <item>North Fremantle</item>
-        <item>North Lake</item>
-        <item>North Perth</item>
-        <item>Northbridge</item>
-        <item>Oakford</item>
-        <item>Ocean Reef</item>
-        <item>Oldsbury</item>
-        <item>Orelia</item>
-        <item>Osborne Park</item>
-        <item>Padbury</item>
-        <item>Palmyra</item>
-        <item>Parkwood</item>
-        <item>Parmelia</item>
-        <item>Pearsall</item>
-        <item>Peppermint Grove</item>
-        <item>Perth</item>
-        <item>Pickering Brook</item>
-        <item>Piesse Brook</item>
-        <item>Port Kennedy</item>
-        <item>Queens Park</item>
-        <item>Quinns Rocks</item>
-        <item>Redcliffe</item>
-        <item>Ridgewood</item>
-        <item>Riverton</item>
-        <item>Rivervale</item>
-        <item>Rockingham</item>
-        <item>Roleystone</item>
-        <item>Rossmoyne</item>
-        <item>Safety Bay</item>
-        <item>Salter Point</item>
-        <item>Samson</item>
-        <item>Scarborough</item>
-        <item>Secret Harbour</item>
-        <item>Seville Grove</item>
-        <item>Shelley</item>
-        <item>Shenton Park</item>
-        <item>Shoalwater</item>
-        <item>Sinagra</item>
-        <item>Singleton</item>
-        <item>Sorrento</item>
-        <item>South Fremantle</item>
-        <item>South Guildford</item>
-        <item>South Lake</item>
-        <item>South Perth</item>
-        <item>Southern River</item>
-        <item>Spearwood</item>
-        <item>St James</item>
-        <item>Stirling</item>
-        <item>Straffon</item>
-        <item>Subiaco</item>
-        <item>Success</item>
-        <item>Swan View</item>
-        <item>Swanbourne</item>
-        <item>Tapping</item>
-        <item>The Vines</item>
-        <item>Thornlie</item>
-        <item>Trigg</item>
-        <item>Tuart Hill</item>
-        <item>Two Rocks</item>
-        <item>Upper Swan</item>
-        <item>Victoria Park</item>
-        <item>Viveash</item>
-        <item>Waikiki</item>
-        <item>Walliston</item>
-        <item>Wandi</item>
-        <item>Wanneroo</item>
-        <item>Warnbro</item>
-        <item>Warwick</item>
-        <item>Waterford</item>
-        <item>Watermans Bay</item>
-        <item>Wattle Grove</item>
-        <item>Wattleup</item>
-        <item>Wellard</item>
-        <item>Wembley</item>
-        <item>Wembley Downs</item>
-        <item>West Leederville</item>
-        <item>West Perth</item>
-        <item>West Swan</item>
-        <item>Westfield</item>
-        <item>Westminster</item>
-        <item>Wexcombe</item>
-        <item>White Gum Valley</item>
-        <item>Willagee</item>
-        <item>Willetton</item>
-        <item>Wilson</item>
-        <item>Winthrop</item>
-        <item>Woodbridge</item>
-        <item>Woodlands</item>
-        <item>Woodvale</item>
-        <item>Yanchep</item>
-        <item>Yangebup</item>
-        <item>Yokine</item>
+        <item>ALBANY</item>
+        <item>ALEXANDER HEIGHTS</item>
+        <item>ALFRED COVE</item>
+        <item>APPLECROSS</item>
+        <item>ARMADALE</item>
+        <item>ASCOT</item>
+        <item>ASHBY</item>
+        <item>ATTADALE</item>
+        <item>AUGUSTA</item>
+        <item>AUSTRALIND</item>
+        <item>BALCATTA</item>
+        <item>BALDIVIS</item>
+        <item>BALGA</item>
+        <item>BALINGUP</item>
+        <item>BALLAJURA</item>
+        <item>BARRAGUP</item>
+        <item>BASKERVILLE</item>
+        <item>BASSENDEAN</item>
+        <item>BAYSWATER</item>
+        <item>BECKENHAM</item>
+        <item>BEDFORDALE</item>
+        <item>BEECHBORO</item>
+        <item>BELDON</item>
+        <item>BELLEVUE</item>
+        <item>BELMONT</item>
+        <item>BENGER</item>
+        <item>BENTLEY</item>
+        <item>BERTRAM</item>
+        <item>BIBRA LAKE</item>
+        <item>BICTON</item>
+        <item>BINNINGUP</item>
+        <item>BOULDER</item>
+        <item>BRENTWOOD</item>
+        <item>BRIDGETOWN</item>
+        <item>BROOME</item>
+        <item>BRUNSWICK JUNCTION</item>
+        <item>BULL CREEK</item>
+        <item>BULLSBROOK</item>
+        <item>BUNBURY</item>
+        <item>BURSWOOD</item>
+        <item>BUSSELTON</item>
+        <item>BYFORD</item>
+        <item>CANNING VALE</item>
+        <item>CANNINGTON</item>
+        <item>CAPEL</item>
+        <item>CARBUNUP RIVER</item>
+        <item>CARINE</item>
+        <item>CARLISLE</item>
+        <item>CARNARVON</item>
+        <item>CATABY</item>
+        <item>CAVERSHAM</item>
+        <item>CHIDLOW</item>
+        <item>CLAREMONT</item>
+        <item>CLARKSON</item>
+        <item>CLOVERDALE</item>
+        <item>COCKBURN CENTRAL</item>
+        <item>COLLIE</item>
+        <item>COMO</item>
+        <item>COOLGARDIE</item>
+        <item>COOLUP</item>
+        <item>COTTESLOE</item>
+        <item>COWARAMUP</item>
+        <item>CUNDERDIN</item>
+        <item>CURRAMBINE</item>
+        <item>DALWALLINU</item>
+        <item>DAMPIER</item>
+        <item>DARDANUP</item>
+        <item>DAWESVILLE</item>
+        <item>DENMARK</item>
+        <item>DERBY</item>
+        <item>DIANELLA</item>
+        <item>DONGARA</item>
+        <item>DONNYBROOK</item>
+        <item>DOUBLEVIEW</item>
+        <item>DUNCRAIG</item>
+        <item>DUNSBOROUGH</item>
+        <item>DWELLINGUP</item>
+        <item>EAST FREMANTLE</item>
+        <item>EAST PERTH</item>
+        <item>EAST VICTORIA PARK</item>
+        <item>EATON</item>
+        <item>EDGEWATER</item>
+        <item>ELLENBROOK</item>
+        <item>ERSKINE</item>
+        <item>ESPERANCE</item>
+        <item>EXMOUTH</item>
+        <item>FALCON</item>
+        <item>FITZROY CROSSING</item>
+        <item>FLOREAT</item>
+        <item>FORRESTDALE</item>
+        <item>FORRESTFIELD</item>
+        <item>FREMANTLE</item>
+        <item>GELORUP</item>
+        <item>GERALDTON</item>
+        <item>GIDGEGANNUP</item>
+        <item>GIRRAWHEEN</item>
+        <item>GLEN FORREST</item>
+        <item>GLENDALOUGH</item>
+        <item>GLENFIELD</item>
+        <item>GNANGARA</item>
+        <item>GOLDEN BAY</item>
+        <item>GOSNELLS</item>
+        <item>GRACETOWN</item>
+        <item>GREENBUSHES</item>
+        <item>GREENOUGH</item>
+        <item>GREENWOOD</item>
+        <item>GUILDFORD</item>
+        <item>GWELUP</item>
+        <item>HALLS HEAD</item>
+        <item>HAMILTON HILL</item>
+        <item>HARVEY</item>
+        <item>HENLEY BROOK</item>
+        <item>HERNE HILL</item>
+        <item>HIGH WYCOMBE</item>
+        <item>HIGHGATE</item>
+        <item>HILLARYS</item>
+        <item>HUNTINGDALE</item>
+        <item>INNALOO</item>
+        <item>JANDAKOT</item>
+        <item>JOLIMONT</item>
+        <item>JOONDALUP</item>
+        <item>JURIEN BAY</item>
+        <item>KALAMUNDA</item>
+        <item>KALGOORLIE</item>
+        <item>KAMBALDA</item>
+        <item>KAMBALDA WEST</item>
+        <item>KARAWARA</item>
+        <item>KARDINYA</item>
+        <item>KARRAGULLEN</item>
+        <item>KARRATHA</item>
+        <item>KARRIDALE</item>
+        <item>KARRINYUP</item>
+        <item>KELLERBERRIN</item>
+        <item>KELMSCOTT</item>
+        <item>KEWDALE</item>
+        <item>KIARA</item>
+        <item>KINGSLEY</item>
+        <item>KIRUP</item>
+        <item>KOJONUP</item>
+        <item>KOONDOOLA</item>
+        <item>KUNUNURRA</item>
+        <item>KWINANA</item>
+        <item>LAKELANDS</item>
+        <item>LANGFORD</item>
+        <item>LEDA</item>
+        <item>LEEDERVILLE</item>
+        <item>LEEMING</item>
+        <item>LESMURDIE</item>
+        <item>LYNWOOD</item>
+        <item>MADDINGTON</item>
+        <item>MADELEY</item>
+        <item>MAIDA VALE</item>
+        <item>MALAGA</item>
+        <item>MANDURAH</item>
+        <item>MANJIMUP</item>
+        <item>MANNING</item>
+        <item>MANYPEAKS</item>
+        <item>MARGARET RIVER</item>
+        <item>MEADOW SPRINGS</item>
+        <item>MEEKATHARRA</item>
+        <item>MERRIWA</item>
+        <item>MIDDLE SWAN</item>
+        <item>MIDVALE</item>
+        <item>MINDARIE</item>
+        <item>MIRRABOOKA</item>
+        <item>MOONYOONOOKA</item>
+        <item>MOORA</item>
+        <item>MORLEY</item>
+        <item>MOSMAN PARK</item>
+        <item>MOUNT BARKER</item>
+        <item>MT LAWLEY</item>
+        <item>MT PLEASANT</item>
+        <item>MULLALOO</item>
+        <item>MULLALYUP</item>
+        <item>MUNDARING</item>
+        <item>MUNDIJONG</item>
+        <item>MUNSTER</item>
+        <item>MURDOCH</item>
+        <item>MYALUP</item>
+        <item>MYAREE</item>
+        <item>NARROGIN</item>
+        <item>NAVAL BASE</item>
+        <item>NEDLANDS</item>
+        <item>NEERABUP</item>
+        <item>NEWMAN</item>
+        <item>NORANDA</item>
+        <item>NORSEMAN</item>
+        <item>NORTH DANDALUP</item>
+        <item>NORTH FREMANTLE</item>
+        <item>NORTH PERTH</item>
+        <item>NORTH YUNDERUP</item>
+        <item>NORTHAM</item>
+        <item>NORTHBRIDGE</item>
+        <item>NORTHCLIFFE</item>
+        <item>NOWERGUP</item>
+        <item>O\'CONNOR</item>
+        <item>OCEAN REEF</item>
+        <item>OSBORNE PARK</item>
+        <item>PADBURY</item>
+        <item>PALMYRA</item>
+        <item>PARMELIA</item>
+        <item>PEARSALL</item>
+        <item>PEMBERTON</item>
+        <item>PERTH</item>
+        <item>PICTON</item>
+        <item>PINJARRA</item>
+        <item>PORT HEDLAND</item>
+        <item>PORT KENNEDY</item>
+        <item>PRESTON BEACH</item>
+        <item>QUINNS ROCKS</item>
+        <item>RAVENSTHORPE</item>
+        <item>REDCLIFFE</item>
+        <item>REDMOND</item>
+        <item>RIDGEWOOD</item>
+        <item>RIVERTON</item>
+        <item>RIVERVALE</item>
+        <item>ROCKINGHAM</item>
+        <item>ROLEYSTONE</item>
+        <item>ROSA BROOK</item>
+        <item>ROTTNEST ISLAND</item>
+        <item>SAWYERS VALLEY</item>
+        <item>SCARBOROUGH</item>
+        <item>SECRET HARBOUR</item>
+        <item>SERPENTINE</item>
+        <item>SEVILLE GROVE</item>
+        <item>SINGLETON</item>
+        <item>SORRENTO</item>
+        <item>SOUTH FREMANTLE</item>
+        <item>SOUTH HEDLAND</item>
+        <item>SOUTH LAKE</item>
+        <item>SOUTH PERTH</item>
+        <item>SOUTH YUNDERUP</item>
+        <item>SOUTHERN RIVER</item>
+        <item>SPEARWOOD</item>
+        <item>STRATHAM DOWNS</item>
+        <item>STRATTON</item>
+        <item>SUBIACO</item>
+        <item>SUCCESS</item>
+        <item>SWAN VIEW</item>
+        <item>SWANBOURNE</item>
+        <item>TAMMIN</item>
+        <item>THE LAKES</item>
+        <item>THORNLIE</item>
+        <item>TUART HILL</item>
+        <item>UPPER SWAN</item>
+        <item>VASSE</item>
+        <item>VICTORIA PARK</item>
+        <item>WAIKIKI</item>
+        <item>WALKAWAY</item>
+        <item>WALPOLE</item>
+        <item>WANGARA</item>
+        <item>WANNEROO</item>
+        <item>WARNBRO</item>
+        <item>WAROONA</item>
+        <item>WARWICK</item>
+        <item>WATERLOO</item>
+        <item>WATTLE GROVE</item>
+        <item>WEDGEFIELD</item>
+        <item>WELLSTEAD</item>
+        <item>WELSHPOOL</item>
+        <item>WEMBLEY</item>
+        <item>WEST PERTH</item>
+        <item>WEST SWAN</item>
+        <item>WESTMINSTER</item>
+        <item>WILLETTON</item>
+        <item>WILLIAMS</item>
+        <item>WITCHCLIFFE</item>
+        <item>WOKALUP</item>
+        <item>WOODVALE</item>
+        <item>WOOROLOO</item>
+        <item>WUBIN</item>
+        <item>YANCHEP</item>
+        <item>YOKINE</item>
+        <item>YORK</item>
+        <item>YOUNG SIDING</item>
     </string-array>
 
 </resources>

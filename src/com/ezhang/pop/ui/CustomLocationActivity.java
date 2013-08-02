@@ -29,7 +29,6 @@ import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import com.ezhang.pop.R;
-import com.ezhang.pop.core.LocationService;
 import com.ezhang.pop.core.LocationSpliter;
 import com.ezhang.pop.core.NotEmptyValidator;
 import com.ezhang.pop.network.RequestFactory;
@@ -63,8 +62,6 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 
     private LocationManager m_locationManager;
 
-    private String m_provider = null;
-
     private Location m_location = null;
 
 	private int m_selectedHistoryLocation = 0;
@@ -91,7 +88,7 @@ public class CustomLocationActivity extends Activity implements RequestListener 
         m_progress = new ProgressDialog(this);
         m_progress.setCancelable(true);
         m_progress.dismiss();
-        m_progress.setMessage("Detecting...");
+        m_progress.setMessage("Detecting. It may take a long time...");
 
         m_reqManager = RequestManager.from(this);
 
@@ -264,16 +261,13 @@ public class CustomLocationActivity extends Activity implements RequestListener 
         AutoSelectCustomRadioBtn();
         EmIndication indication = PromptEnableLocationService();
         if (indication == EmIndication.EmContinue) {
-            m_provider = LocationService.GetBestProvider(m_locationManager);
-            if (m_provider != null) {
-                m_locationManager.requestLocationUpdates(m_provider,
-                        60 * 1000L, 20.0f, this.m_locationListener);
+            m_locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    60 * 1000L, 20.0f, this.m_locationListener);
 
-                Message msg = new Message();
-                msg.what = MSG_GPS_TIMEOUT;
-                StartTimer(5000, msg);
-                m_progress.show();
-            }
+            Message msg = new Message();
+            msg.what = MSG_GPS_TIMEOUT;
+            StartTimer(25000, msg);
+            m_progress.show();
         }
     }
 
@@ -378,7 +372,9 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 
     public void OnTimeout(Message msg){
         if(msg.what == MSG_GPS_TIMEOUT){
-            m_location = m_locationManager.getLastKnownLocation(m_provider);
+            String LocateType= LocationManager.GPS_PROVIDER;
+            m_location = m_locationManager.getLastKnownLocation(LocateType);
+            m_locationManager.removeUpdates(m_locationListener);
             if (m_location == null) {
                 m_progress.dismiss();
                 Toast.makeText(this,
@@ -397,10 +393,8 @@ public class CustomLocationActivity extends Activity implements RequestListener 
     private EmIndication PromptEnableLocationService() {
         boolean isGPSEnabled = m_locationManager
                 .isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean isNetworkLocationEnabled = m_locationManager
-                .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-        if (!isGPSEnabled && !isNetworkLocationEnabled) {
+        if (!isGPSEnabled) {
             CreateLocationAccessAlertDlg();
             if (!m_locationAccessDlg.isShowing()) {
                 m_locationAccessDlg.show();
@@ -408,14 +402,6 @@ public class CustomLocationActivity extends Activity implements RequestListener 
             return EmIndication.EmStop;
         }
 
-        String provider = LocationService.GetBestProvider(m_locationManager);
-
-        if (provider == null) {
-            if (!m_locationAccessDlg.isShowing()) {
-                m_locationAccessDlg.show();
-            }
-            return EmIndication.EmStop;
-        }
         return EmIndication.EmContinue;
     }
 
@@ -430,7 +416,7 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 
         // Setting Dialog Message
         alertDialog
-                .setMessage("Location Access is disabled. Press go to the settings menu and enable both \n * GPS satellites\n * Wi-Fi & mobile network");
+                .setMessage("Location Access is disabled. Press go to your phone settings and enable 'GPS satellites'");
 
         // On pressing Settings button
         alertDialog.setPositiveButton("Go",

@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class FuelInfoCache implements Parcelable {
     private FuelCacheParam m_fuelCacheParam = new FuelCacheParam();
-    public List<FuelInfo> m_cachedFuelInfo = null;
+    public List<FuelInfo> m_cachedFuelInfo = new ArrayList<FuelInfo>();
 
     public FuelInfoCache(){
     }
@@ -34,7 +34,10 @@ public class FuelInfoCache implements Parcelable {
     }
 
     public void CacheFuelInfo(AppSettings settings, String suburb, Date dayOfFuel, List<FuelInfo> fuelInfo) {
-        m_cachedFuelInfo = fuelInfo;
+        if (m_cachedFuelInfo != fuelInfo) {
+            m_cachedFuelInfo.clear();
+            m_cachedFuelInfo.addAll(fuelInfo);
+        }
         SetCacheContext(settings, suburb, dayOfFuel);
     }
 

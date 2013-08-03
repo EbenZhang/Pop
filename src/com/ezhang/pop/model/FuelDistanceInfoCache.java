@@ -13,7 +13,7 @@ import java.util.List;
  * Created by eben on 13-5-20.
  */
 public class FuelDistanceInfoCache implements Parcelable {
-    public List<FuelDistanceItem> m_cachedFuelDistanceInfo;
+    public List<FuelDistanceItem> m_cachedFuelDistanceInfo = new ArrayList<FuelDistanceItem>();
     private FuelCacheParam m_fuelCacheParam = new FuelCacheParam();
     private String m_address = null;
 
@@ -36,7 +36,10 @@ public class FuelDistanceInfoCache implements Parcelable {
     }
 
     public void CacheFuelInfo(AppSettings settings, String suburb, String address, Date dayOfFuel, List<FuelDistanceItem> fuelDistanceItems) {
-        m_cachedFuelDistanceInfo = fuelDistanceItems;
+        if (m_cachedFuelDistanceInfo != fuelDistanceItems) {
+            m_cachedFuelDistanceInfo.clear();
+            m_cachedFuelDistanceInfo.addAll(fuelDistanceItems);
+        }
         SetCacheContext(settings, suburb, address, dayOfFuel);
     }
 

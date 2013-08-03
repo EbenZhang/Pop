@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -46,7 +45,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
      * Manage requests that query data from remote service.
      */
     private RequestManager m_reqManager;
-    private LocationManager m_locationManager;
     private FuelStateMachine m_fuelStateMachine;
     private final ArrayList<FuelDistanceItem> m_fuelInfoList = new ArrayList<FuelDistanceItem>();
 
@@ -123,8 +121,11 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
 
         InitProgressBar();
 
-        m_progressSwitchingView = new ProgressDialog(this);
-        m_progressSwitchingView.setMessage("Changing View");
+        if(m_progressSwitchingView == null){
+            m_progressSwitchingView = new ProgressDialog(this);
+            m_progressSwitchingView.setOwnerActivity(this);
+            m_progressSwitchingView.setMessage("Changing View");
+        }
         if (m_listViewFragment == null) {
             m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
                 @Override
@@ -331,10 +332,6 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     }
 
     private void OnDiscountInfoLoaded() {
-        if (m_locationManager == null) {
-            m_locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        }
-
         PromptEnableNetwork();
 
         if (m_settings.GetHistoryLocations().size() == 0){
@@ -352,15 +349,19 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     }
 
     private void RestoreFromSavedInstance() {
-        if (m_savedInstanceState != null && m_fuelStateMachine != null) {
-            m_fuelStateMachine.RestoreFromSaveInstanceState(m_savedInstanceState);
-            m_savedInstanceState = null;
+        if (m_fuelStateMachine != null) {
+            if (m_savedInstanceState != null) {
+                m_fuelStateMachine.RestoreFromSaveInstanceState(m_savedInstanceState);
+                m_savedInstanceState = null;
+            } else {
+                m_fuelStateMachine.LoadFromCacheFile();
+            }
         }
     }
 
     private void CreateStateMachine() {
         m_fuelStateMachine = new FuelStateMachine(m_reqManager,
-                m_locationManager, m_settings);
+                m_settings, getExternalCacheDir().getAbsolutePath());
         m_fuelStateMachine.addObserver(this);
         StartStateMachine();
         this.update(null, null);

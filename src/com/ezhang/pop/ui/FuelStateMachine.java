@@ -1,8 +1,5 @@
 package com.ezhang.pop.ui;
 
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,6 +34,10 @@ import java.util.TimerTask;
 
 public class FuelStateMachine extends Observable implements RequestListener {
     private boolean m_paused = false;
+
+    public void LoadFromCacheFile() {
+        m_cacheManager.LoadFromFile();
+    }
 
     private static class TimerHandler extends Handler {
 		FuelStateMachine m_fuelStateMachine = null;
@@ -73,7 +74,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
     private final Handler m_timeoutHandler = new TimerHandler(this);
     private AppSettings m_settings = null;
 
-    private final CacheManager m_cacheManager = new CacheManager();
+    private final CacheManager m_cacheManager;
 
     private EmState m_lastState = EmState.Invalid;
     private boolean m_fuelInfoChanged = false;
@@ -81,10 +82,10 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
     private PriceDate m_dateOfFuel = PriceDate.Today;
 
-	public FuelStateMachine(RequestManager reqManager,
-			LocationManager locationManager, AppSettings settings) {
+	public FuelStateMachine(RequestManager reqManager, AppSettings settings, String externalCacheDir) {
 		m_restReqManager = reqManager;
 		m_settings = settings;
+        m_cacheManager = new CacheManager(externalCacheDir);
 
 		InitStateMachineTransitions();
 	}
@@ -172,7 +173,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
                                 ex.printStackTrace();
                             }
                         }
-                        OnFuelInfoReceived(fuelInfo, publishDay);
+                        OnFuelInfoReceived(fuelInfo, publishDay, false);
 					}
 				});
 
@@ -212,15 +213,16 @@ public class FuelStateMachine extends Observable implements RequestListener {
 				});
 	}
 
-    private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList, Date dayOfFuel) {
+    private void OnFuelInfoReceived(List<FuelInfo> fuelInfoList, Date dayOfFuel, boolean isDataFromCache) {
         UpdateFuelInfoList(fuelInfoList);
         if (m_fuelInfoList.size() != 0) {
             RequestDistanceMatrix(m_fuelInfoList);
         } else {
             m_stateMachine.SetState(EmState.DistanceReceived);
         }
-
-        m_cacheManager.CacheFuelInfo(m_settings, m_suburb, dayOfFuel, m_fuelInfoList);
+        if(!isDataFromCache){
+            m_cacheManager.CacheFuelInfo(m_settings, m_suburb, dayOfFuel, m_fuelInfoList);
+        }
         Notify();
     }
 
@@ -264,10 +266,11 @@ public class FuelStateMachine extends Observable implements RequestListener {
 			item.destinationAddr = fuelInfo.GetAddress();
 			m_fuelDistanceItems.add(item);
 			i++;
-		}
+        }
         m_cacheManager.CacheFuelDistanceInfo(m_settings, m_suburb, m_address, GetDate(m_dateOfFuel), m_fuelDistanceItems);
-		Notify();
-	}
+
+        Notify();
+    }
 
     private Date GetDate(PriceDate date) {
         if (date == PriceDate.Tomorrow) {
@@ -315,7 +318,7 @@ public class FuelStateMachine extends Observable implements RequestListener {
         List<FuelInfo> cachedFuel = m_cacheManager.HitFuelInfoCache(m_settings, m_suburb, GetDate(m_dateOfFuel));
         if(cachedFuel != null){
             m_stateMachine.SetState(EmState.FuelInfoReceived);
-            OnFuelInfoReceived(cachedFuel, GetDate(m_dateOfFuel));
+            OnFuelInfoReceived(cachedFuel, GetDate(m_dateOfFuel), true);
             return;
         }
 		StartTimer(5000);
@@ -386,6 +389,8 @@ public class FuelStateMachine extends Observable implements RequestListener {
 
     public void Pause() {
         this.m_paused = true;
+        m_restReqManager.removeRequestListener(this);
+        m_cacheManager.SaveToFile();
     }
 
     public boolean IsPaused(){

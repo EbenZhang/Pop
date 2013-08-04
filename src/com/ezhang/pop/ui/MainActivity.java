@@ -53,9 +53,9 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     private GestureDetector m_gestureDetector;
     private TabHost m_tabCurDate;
 
-    private static ListViewFragment m_listViewFragment;
-    private static GMapFragment m_gmapFragment;
-    private static Fragment m_curFragment;
+    private ListViewFragment m_listViewFragment;
+    private GMapFragment m_gmapFragment;
+    private Fragment m_curFragment;
 
     private ProgressDialog m_progressBar;
     private ProgressDialog m_progressSwitchingView;
@@ -126,25 +126,22 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
             m_progressSwitchingView.setOwnerActivity(this);
             m_progressSwitchingView.setMessage("Changing View");
         }
-        if (m_listViewFragment == null) {
-            m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
-                @Override
-                public Object Call(Object input) {
-                    OnListFragmentReady();
-                    return null;
-                }
-            }, m_fuelInfoList);
-        }
+        m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
+            @Override
+            public Object Call(Object input) {
+                OnListFragmentReady();
+                return null;
+            }
+        }, m_fuelInfoList);
 
-        if(m_gmapFragment == null) {
-            m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
-                @Override
-                public Object Call(Object input) {
-                    OnGMapReady();
-                    return null;
-                }
-            }, m_settings);
-        }
+        m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
+            @Override
+            public Object Call(Object input) {
+                OnGMapReady();
+                return null;
+            }
+        }, m_settings);
+
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         m_curFragment = m_listViewFragment;
         if (m_settings.LastViewIsMap()) {

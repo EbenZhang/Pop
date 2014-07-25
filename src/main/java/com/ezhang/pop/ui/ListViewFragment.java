@@ -23,13 +23,13 @@ import java.util.ArrayList;
  */
 public class ListViewFragment extends android.support.v4.app.Fragment {
     private ListView m_fuelDistanceItemlistView = null;
-    private final ArrayList<FuelDistanceItem> m_fuelInfoList;
+    private ArrayList<FuelDistanceItem> m_fuelInfoList;
     ICallable<Object, Object> m_onFragmentCreated;
     boolean m_isReady = false;
     public ListViewFragment(){
         m_fuelInfoList = new ArrayList<FuelDistanceItem>();
     }
-    public ListViewFragment(ICallable<Object, Object> onFragmentCreated, ArrayList<FuelDistanceItem> fuelInfoList){
+    public void Init(ICallable<Object, Object> onFragmentCreated, ArrayList<FuelDistanceItem> fuelInfoList){
         m_onFragmentCreated = onFragmentCreated;
         m_fuelInfoList = fuelInfoList;
     }

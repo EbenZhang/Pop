@@ -59,6 +59,7 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 	private static final int MAX_HISTORY_LOCATION = 6;
     private static final int MSG_GPS_TIMEOUT = 1;
     private static final int MSG_GEO_TO_ADDR_TIMEOUT = 2;
+    private static final int MSG_WIFI_TIMEOUT = 3;
 
     private LocationManager m_locationManager;
 
@@ -259,13 +260,27 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 
     public void OnClickDetectByGPS(View v) {
         AutoSelectCustomRadioBtn();
-        EmIndication indication = PromptEnableLocationService();
+        EmIndication indication = PromptEnableLocationService(LocationManager.GPS_PROVIDER);
         if (indication == EmIndication.EmContinue) {
             m_locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     60 * 1000L, 20.0f, this.m_locationListener);
 
             Message msg = new Message();
             msg.what = MSG_GPS_TIMEOUT;
+            StartTimer(25000, msg);
+            m_progress.show();
+        }
+    }
+
+    public void OnClickDetectByWifi(View v) {
+        AutoSelectCustomRadioBtn();
+        EmIndication indication = PromptEnableLocationService(LocationManager.NETWORK_PROVIDER);
+        if (indication == EmIndication.EmContinue) {
+            m_locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    60 * 1000L, 20.0f, this.m_locationListener);
+
+            Message msg = new Message();
+            msg.what = MSG_WIFI_TIMEOUT;
             StartTimer(25000, msg);
             m_progress.show();
         }
@@ -371,8 +386,8 @@ public class CustomLocationActivity extends Activity implements RequestListener 
     }
 
     public void OnTimeout(Message msg){
-        if(msg.what == MSG_GPS_TIMEOUT){
-            String LocateType= LocationManager.GPS_PROVIDER;
+        if(msg.what == MSG_GPS_TIMEOUT || msg.what == MSG_WIFI_TIMEOUT){
+            String LocateType = msg.what == MSG_GPS_TIMEOUT ? LocationManager.GPS_PROVIDER : LocationManager.NETWORK_PROVIDER;
             m_location = m_locationManager.getLastKnownLocation(LocateType);
             m_locationManager.removeUpdates(m_locationListener);
             if (m_location == null) {
@@ -390,9 +405,9 @@ public class CustomLocationActivity extends Activity implements RequestListener 
         }
     }
 
-    private EmIndication PromptEnableLocationService() {
+    private EmIndication PromptEnableLocationService(String provider) {
         boolean isGPSEnabled = m_locationManager
-                .isProviderEnabled(LocationManager.GPS_PROVIDER);
+                .isProviderEnabled(provider);
 
         if (!isGPSEnabled) {
             CreateLocationAccessAlertDlg();
@@ -416,7 +431,7 @@ public class CustomLocationActivity extends Activity implements RequestListener 
 
         // Setting Dialog Message
         alertDialog
-                .setMessage("Location Access is disabled. Press go to your phone settings and enable 'GPS satellites'");
+                .setMessage("Location Access is disabled. Press go to your phone settings and enable it");
 
         // On pressing Settings button
         alertDialog.setPositiveButton("Go",

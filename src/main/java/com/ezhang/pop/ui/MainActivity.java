@@ -126,7 +126,8 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
             m_progressSwitchingView.setOwnerActivity(this);
             m_progressSwitchingView.setMessage("Changing View");
         }
-        m_listViewFragment = new ListViewFragment(new ICallable<Object, Object>() {
+        m_listViewFragment = new ListViewFragment();
+        m_listViewFragment.Init(new ICallable<Object, Object>() {
             @Override
             public Object Call(Object input) {
                 OnListFragmentReady();
@@ -134,7 +135,8 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
             }
         }, m_fuelInfoList);
 
-        m_gmapFragment = new GMapFragment(new ICallable<Object, Object>() {
+        m_gmapFragment = new GMapFragment();
+        m_gmapFragment.Init(new ICallable<Object, Object>() {
             @Override
             public Object Call(Object input) {
                 OnGMapReady();
@@ -166,13 +168,13 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
         m_progressBar = new ProgressDialog(this);
         m_progressBar.setCancelable(true);
         m_progressBar.setMessage("Waiting For Fuel Info...");
-        m_progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        m_progressBar.setProgress(0);
-        m_progressBar.setMax(100);
+        //m_progressBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        //m_progressBar.setProgress(0);
+        //m_progressBar.setMax(100);
     }
 
     private void UpdateProgress(int progress, String text, boolean show){
-        m_progressBar.setProgress(progress);
+        //m_progressBar.setProgress(progress);
         m_progressBar.setMessage(text);
         if(show){
             m_progressBar.show();

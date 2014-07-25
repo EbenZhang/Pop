@@ -230,7 +230,7 @@ public class SettingsActivity extends PreferenceActivity {
 	 * activity is showing a two-pane settings UI.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private static class DiscountPreferenceFragment extends PreferenceFragment {
+	public static class DiscountPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
@@ -250,7 +250,7 @@ public class SettingsActivity extends PreferenceActivity {
 	 * activity is showing a two-pane settings UI.
 	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private static class SuburbsPreferenceFragment extends PreferenceFragment {
+	public static class SuburbsPreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
@@ -259,7 +259,7 @@ public class SettingsActivity extends PreferenceActivity {
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private static class FueltypePreferenceFragment extends PreferenceFragment {
+    public static class FueltypePreferenceFragment extends PreferenceFragment {
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);

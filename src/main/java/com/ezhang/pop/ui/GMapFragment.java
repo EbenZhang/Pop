@@ -31,7 +31,7 @@ public class GMapFragment extends SupportMapFragment {
     public GMapFragment() {
     }
 
-    public GMapFragment(ICallable<Object, Object> onGMapReady, AppSettings settings) {
+    public void Init(ICallable<Object, Object> onGMapReady, AppSettings settings) {
         m_onGMapReady = onGMapReady;
         m_settings = settings;
     }

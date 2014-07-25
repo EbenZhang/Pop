@@ -30,8 +30,8 @@ public class AppSettings {
     private static final String ZOOM_LEVEL = "com.ezhang.pop.zoom.level";
 
     private final Context m_context;
-    public int m_colesDiscount = 8;
-    public int m_wwsDiscount = 8;
+    public int m_colesDiscount = 4;
+    public int m_wwsDiscount = 4;
     private SharedPreferences m_settings = null;
     private AlertDialog m_discountSettingsDlg;
     private boolean m_isFirstRun = false;

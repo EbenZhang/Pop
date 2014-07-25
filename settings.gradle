@@ -1,1 +1,1 @@
-include ':android-support-v7-appcompat'
+include ':app'

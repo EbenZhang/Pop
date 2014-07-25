@@ -1,0 +1,76 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity" >
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="ca-app-pub-3312616311449672/7445057141"
+        android:gravity="center" />
+
+    <TabHost
+            android:layout_below="@+id/adView"
+            android:layout_width="fill_parent"
+            android:layout_height="40dp"
+            android:id="@+id/tabHost"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true">
+
+        <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical">
+
+            <TabWidget
+                    android:id="@android:id/tabs"
+                    android:layout_width="fill_parent"
+                    android:textSize="18sp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="-5dip"> <!-- bottom margin for not showing the annoying bottom line -->
+            </TabWidget>
+
+            <FrameLayout
+                    android:id="@android:id/tabcontent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent">
+
+                <Button android:id="@+id/tabToday"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="Placeholder"
+                        />
+
+                <Button android:id="@+id/tabTomorrow"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="Placeholder"
+                        />
+                <Button android:id="@+id/tabYesterday"
+                        android:layout_width="fill_parent"
+                        android:layout_height="fill_parent"
+                        android:text="Placeholder"
+                        />
+            </FrameLayout>
+        </LinearLayout>
+    </TabHost>
+
+    <Spinner
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_below="@+id/tabHost"
+            android:id="@+id/cur_addr_spinner"/>
+
+    <FrameLayout
+            android:layout_below="@+id/cur_addr_spinner"
+            android:id="@+id/fragmentPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+    </FrameLayout>
+</RelativeLayout>

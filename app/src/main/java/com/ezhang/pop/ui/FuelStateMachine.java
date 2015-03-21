@@ -323,11 +323,15 @@ public class FuelStateMachine extends Observable implements RequestListener {
         }
 		StartTimer(5000);
 		Request req = RequestFactory.GetFuelInfoRequest(m_suburb,
-                m_settings.IncludeSurroundings(), m_settings.GetFuelType(), this.m_dateOfFuel.toString());
+                m_settings.IncludeSurroundings(), m_settings.GetFuelType(), GetDateString());
 		m_restReqManager.execute(req, this);
 	}
 
-	private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
+    private String GetDateString() {
+        return this.m_dateOfFuel.toString();
+    }
+
+    private void RequestDistanceMatrix(List<FuelInfo> fuelInfoList) {
         if(this.m_paused){
             return;
         }

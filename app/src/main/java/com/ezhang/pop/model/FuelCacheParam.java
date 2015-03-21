@@ -9,11 +9,13 @@ import java.util.Date;
 
 public class FuelCacheParam implements Parcelable {
     int m_cachedFuelType = 0;
+    @Deprecated
     int m_cachedDay = 0;
     int m_wwsVoucher = 0;
     int m_colesVoucher = 0;
     boolean m_cachedIncludeSurroundings = false;
     String m_cachedSuburb = null;
+    String m_cachedDate = null;
 
     public FuelCacheParam() {
     }
@@ -25,6 +27,7 @@ public class FuelCacheParam implements Parcelable {
         m_colesVoucher = in.readInt();
         m_cachedIncludeSurroundings = in.readByte() != 0;
         m_cachedSuburb = in.readString();
+        m_cachedDate = in.readString();
     }
 
     public static final Parcelable.Creator<FuelCacheParam> CREATOR = new Parcelable.Creator<FuelCacheParam>() {
@@ -39,7 +42,8 @@ public class FuelCacheParam implements Parcelable {
 
     public boolean HitCache(AppSettings settings, String suburb, Date dayOfFuel)
     {
-        boolean hit = m_cachedDay == TimeUtil.GetDayFromDate(dayOfFuel);
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        boolean hit = m_cachedDate != null && m_cachedDate.equals(df.format(dayOfFuel));
         hit &= m_cachedFuelType == settings.GetFuelType();
         hit &= settings.m_wwsDiscount == m_wwsVoucher;
         hit &= settings.m_colesDiscount == m_colesVoucher;
@@ -61,5 +65,6 @@ public class FuelCacheParam implements Parcelable {
         parcel.writeInt(m_colesVoucher);
         parcel.writeByte((byte)(m_cachedIncludeSurroundings?1:0));
         parcel.writeString(m_cachedSuburb);
+        parcel.writeString(m_cachedDate);
     }
 }

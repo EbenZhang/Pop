@@ -30,7 +30,8 @@ public class FuelInfoCache implements Parcelable {
         m_fuelCacheParam.m_colesVoucher = settings.m_colesDiscount;
         m_fuelCacheParam.m_wwsVoucher = settings.m_wwsDiscount;
         m_fuelCacheParam.m_cachedSuburb = suburb;
-        m_fuelCacheParam.m_cachedDay = TimeUtil.GetDayFromDate(dateOfFuel);
+        java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        m_fuelCacheParam.m_cachedDate = df.format(dateOfFuel);
     }
 
     public void CacheFuelInfo(AppSettings settings, String suburb, Date dayOfFuel, List<FuelInfo> fuelInfo) {

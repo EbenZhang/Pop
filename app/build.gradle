@@ -1,4 +1,4 @@
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 android {
     compileSdkVersion Integer.parseInt(project.ANDROID_BUILD_SDK_VERSION)
     buildToolsVersion project.ANDROID_BUILD_TOOLS_VERSION
@@ -9,17 +9,18 @@ android {
     }
     buildTypes {
         release {
-            runProguard false
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
-    compile 'com.google.code.gson:gson:2.2.+'
-    compile files('libs/datadroid.jar')
-    compile 'com.google.android.gms:play-services:+'
+    implementation 'com.google.code.gson:gson:2.2.+'
+    implementation files('libs/datadroid.jar')
+    implementation 'com.google.android.gms:play-services-maps:11.4.0'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.google.android.gms:play-services-ads:11.4.0'
 }
 buildscript {
     repositories {

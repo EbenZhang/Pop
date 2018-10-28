@@ -1,6 +1,9 @@
 package com.ezhang.pop.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,8 +13,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,7 +43,7 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
-public class MainActivity extends android.support.v7.app.ActionBarActivity implements Observer, IGestureHandler {
+public class MainActivity extends Activity implements Observer, IGestureHandler {
     /**
      * Manage requests that query data from remote service.
      */
@@ -151,7 +152,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
             }
         }, m_settings);
 
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
         m_curFragment = m_listViewFragment;
         if (m_settings.LastViewIsMap()) {
             m_curFragment = m_gmapFragment;
@@ -279,7 +280,7 @@ public class MainActivity extends android.support.v7.app.ActionBarActivity imple
     }
 
     private void OnChangeViewClicked() {
-        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
         boolean listViewVisible = m_curFragment == m_listViewFragment;
         if (listViewVisible) {
             m_curFragment = m_gmapFragment;

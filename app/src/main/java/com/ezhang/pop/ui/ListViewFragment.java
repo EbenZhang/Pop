@@ -1,9 +1,9 @@
 package com.ezhang.pop.ui;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 /**
  * Created by EbenZhang on 25/07/13.
  */
-public class ListViewFragment extends android.support.v4.app.Fragment {
+public class ListViewFragment extends Fragment {
     private ListView m_fuelDistanceItemlistView = null;
     private ArrayList<FuelDistanceItem> m_fuelInfoList;
     ICallable<Object, Object> m_onFragmentCreated;

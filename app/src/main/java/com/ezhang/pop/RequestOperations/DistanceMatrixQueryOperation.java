@@ -3,6 +3,7 @@ package com.ezhang.pop.RequestOperations;
 import android.content.Context;
 import android.os.Bundle;
 
+import com.ezhang.pop.R;
 import com.ezhang.pop.model.Destination;
 import com.ezhang.pop.model.DestinationList;
 import com.ezhang.pop.model.DistanceMatrix;
@@ -27,7 +28,8 @@ public class DistanceMatrixQueryOperation implements Operation {
 		DestinationList dstList = (DestinationList) request
 				.getParcelable(DESTINATION);
 
-		String qry = make_distance_query(org, dstList);
+		String apiKey = context.getResources().getString(R.string.google_maps_key);
+		String qry = make_distance_query(org, dstList, apiKey);
 
 		NetworkConnection networkConnection = new NetworkConnection(context,
 				qry);
@@ -48,7 +50,7 @@ public class DistanceMatrixQueryOperation implements Operation {
 		return bundle;
 	}
 
-	private String make_distance_query(String src, DestinationList dstList) {
+	private String make_distance_query(String src, DestinationList dstList, String apiKey) {
 		StringBuilder dstBuilder = new StringBuilder();
 
 		for (Destination dst : dstList.GetDestinations()) {
@@ -57,8 +59,8 @@ public class DistanceMatrixQueryOperation implements Operation {
 		}
 		dstBuilder.deleteCharAt(dstBuilder.length() - 1);
 
-		String header = "http://maps.googleapis.com/maps/api/distancematrix/json?";
-		return header + "origins=" + src + "&destinations="
+		String header = "https://maps.googleapis.com/maps/api/distancematrix/json?key=" + apiKey;
+		return header + "&origins=" + src + "&destinations="
 				+ dstBuilder.toString() + "&sensor=false";
 	}
 }

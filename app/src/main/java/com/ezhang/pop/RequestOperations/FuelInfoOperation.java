@@ -32,7 +32,7 @@ public class FuelInfoOperation implements Operation {
         String dayOfFuel = request.getString(FUEL_DATE);
 
 		String qry = String
-				.format("http://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s&Surrounding=%s&Product=%d&Day=%s",
+				.format("https://www.fuelwatch.wa.gov.au/fuelwatch/fuelWatchRSS?Suburb=%s&Surrounding=%s&Product=%d&Day=%s",
 						suburb, includeSurroundingString, fuelType, dayOfFuel);
 
 		NetworkConnection networkConnection = new NetworkConnection(context,

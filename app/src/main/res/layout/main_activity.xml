@@ -5,17 +5,13 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity" >
-
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/adView"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        ads:adSize="SMART_BANNER"
-        ads:adUnitId="ca-app-pub-3312616311449672/7445057141"
-        android:gravity="center" />
-
+        android:id="@+id/dummyToKeepTabTop"
+        android:layout_height="0px"></LinearLayout>
     <TabHost
-            android:layout_below="@+id/adView"
+            android:layout_below="@+id/dummyToKeepTabTop"
             android:layout_width="fill_parent"
             android:layout_height="40dp"
             android:id="@+id/tabHost"
@@ -63,6 +59,8 @@
     <Spinner
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:layout_gravity="center_horizontal"
             android:layout_below="@+id/tabHost"
             android:id="@+id/cur_addr_spinner"/>
@@ -73,4 +71,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
     </FrameLayout>
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="ca-app-pub-3312616311449672/7445057141"
+        android:gravity="center" />
+
 </RelativeLayout>

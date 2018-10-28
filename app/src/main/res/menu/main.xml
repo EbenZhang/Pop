@@ -23,31 +23,22 @@
             android:title="@string/action_settings"/>
 
     <item
-            android:id="@+id/a_More"
-            android:orderInCategory="1000"
-            android:icon="@drawable/abc_ic_menu_moreoverflow_normal_holo_light"
-            wafuel:showAsAction="always|collapseActionView"
-            android:title="More">
-        <menu>
-            <item
-                    android:id="@+id/help_menu_item"
-                    android:orderInCategory="100"
-                    android:icon="@drawable/action_help"
-                    wafuel:showAsAction="always"
-                    android:title="@string/help"/>
+            android:id="@+id/help_menu_item"
+            android:orderInCategory="100"
+            android:icon="@drawable/action_help"
+            wafuel:showAsAction="always"
+            android:title="@string/help"/>
 
-            <item
-                    android:id="@+id/manage_addr_menu_item"
-                    android:orderInCategory="100"
-                    android:icon="@drawable/manage_addr"
-                    wafuel:showAsAction="always"
-                    android:title="@string/manage_addresses"/>
-            <item
-                    android:id="@+id/share_menu_item"
-                    android:orderInCategory="100"
-                    android:icon="@drawable/rating_good"
-                    wafuel:showAsAction="always"
-                    android:title="@string/share_with_friends"/>
-        </menu>
-    </item>
+    <item
+            android:id="@+id/manage_addr_menu_item"
+            android:orderInCategory="100"
+            android:icon="@drawable/manage_addr"
+            wafuel:showAsAction="always"
+            android:title="@string/manage_addresses"/>
+    <item
+            android:id="@+id/share_menu_item"
+            android:orderInCategory="100"
+            android:icon="@drawable/rating_good"
+            wafuel:showAsAction="always"
+            android:title="@string/share_with_friends"/>
 </menu>

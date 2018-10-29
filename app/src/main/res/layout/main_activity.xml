@@ -67,6 +67,7 @@
 
     <FrameLayout
             android:layout_below="@+id/cur_addr_spinner"
+            android:layout_above="@id/adView"
             android:id="@+id/fragmentPlaceholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
